@@ -1,0 +1,13 @@
+# overcast lan-mac 部署形(依据 research-01 部署节;镜像钉 tag,不用 latest)
+# 布局:本文件与 config.yaml(金库渲染,0600,不进仓)、auths/(凭据卷)同目录
+# 执行归部署批(单 ov-01 边界:工位只读探测,不代跑)
+services:
+  cliproxy:
+    image: eceasy/cli-proxy-api:v8.0.23
+    container_name: overcast
+    restart: unless-stopped
+    ports:
+      - "8317:8317"
+    volumes:
+      - ./config.yaml:/CLIProxyAPI/config.yaml:ro
+      - ./auths:/root/.cli-proxy-api

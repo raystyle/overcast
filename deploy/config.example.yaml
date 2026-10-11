@@ -1,0 +1,54 @@
+# overcast 配置模板:占位符由金库渲染,真值永不进仓(渲染后 0600)
+# 形制依据 research-01 failover 节;字段名在部署批渲染前对照上游 config.example.yaml 核验
+#
+# 纪律:
+# - base-url 不写 /chat/completions 后缀(执行器自接)
+# - 两把 key 必须同种产品:通用开放平台 key 配 paas/v4;编码套餐 key 配
+#   https://open.bigmodel.cn/api/coding/paas/v4,不混填同一 base
+# - 不要把两把 key 配成两个模型别名(别名池是换上游模型名,不是换账户)
+# - 智谱两组显式 disable-cooling: false(不继承舰队旧模板的全局 true)
+
+routing:
+  strategy: round-robin
+  session-affinity: false
+  retry:
+    request-retry: 3
+    max-retry-credentials: 0
+    max-retry-interval: 30
+  cooldown:
+    disable-cooling: false
+
+# chat 面(OpenAI 兼容):codex 与 chat 客户端走这组
+openai-compatibility:
+  - name: glm
+    base-url: "https://open.bigmodel.cn/api/paas/v4"
+    disable-cooling: false
+    request-retry: 3
+    api-key-entries:
+      - api-key: "{{cpa_zhipu_key}}"
+      - api-key: "{{cpa_zhipu_key_b}}"
+    models:
+      - name: "glm-5.3"
+        alias: "zp-glm53-codex"
+
+# messages 面(Claude Code 走这组):chat 池与 messages 池互不代替
+# 条目形制(条目键名与 models 别名字段)以对照上游样例后为准,渲染前必核
+claude-api-key:
+  - name: glm-claude
+    base-url: "https://open.bigmodel.cn/api/anthropic"
+    disable-cooling: false
+    api-key-entries:
+      - api-key: "{{cpa_zhipu_key}}"
+      - api-key: "{{cpa_zhipu_key_b}}"
+    models:
+      - name: "glm-5.3"
+        alias: "zp-glm53-claude"
+
+# 客户端进网关的钥匙,与智谱 key 分开;客户端只见这里发的 key
+access:
+  api-keys:
+    - "{{overcast_gateway_key}}"
+
+# 管理面保持默认关闭远程
+management:
+  allow-remote: false

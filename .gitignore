@@ -1,0 +1,10 @@
+# 秘密面:真实配置与凭据由金库渲染,永不进仓(仓内只留 example 占位符模板)
+**/config*.yaml
+!**/config.example.yaml
+auths/
+.env*
+*.key
+
+# 临时与系统
+*.tmp
+.DS_Store
