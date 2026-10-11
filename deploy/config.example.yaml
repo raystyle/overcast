@@ -26,7 +26,7 @@ openai-compatibility:
     request-retry: 3
     api-key-entries:
       - api-key: "{{cpa_zhipu_key}}"
-      - api-key: "{{cpa_zhipu_key_b}}"
+      - api-key: "{{cpa_zhipu_key_2}}"
     models:
       - name: "glm-5.3"
         alias: "zp-glm53-codex"
@@ -39,7 +39,7 @@ claude-api-key:
     disable-cooling: false
     api-key-entries:
       - api-key: "{{cpa_zhipu_key}}"
-      - api-key: "{{cpa_zhipu_key_b}}"
+      - api-key: "{{cpa_zhipu_key_2}}"
     models:
       - name: "glm-5.3"
         alias: "zp-glm53-claude"
