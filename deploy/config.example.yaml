@@ -49,6 +49,8 @@ claude-api-key:
     models:
       - name: "glm-5.3"
         alias: "zp-glm53-claude"
+      - name: "glm-5.3"
+        alias: "glm-5.3[1m]"
       - name: "glm-5.3-flash"
   - name: glm-claude-b
     base-url: "https://open.bigmodel.cn/api/anthropic"
@@ -57,6 +59,8 @@ claude-api-key:
     models:
       - name: "glm-5.3"
         alias: "zp-glm53-claude"
+      - name: "glm-5.3"
+        alias: "glm-5.3[1m]"
       - name: "glm-5.3-flash"
 
 # responses 面(OpenAI Responses wire 客户端走 /v1/responses):上游智谱开放平台 /api/v1

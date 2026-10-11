@@ -33,6 +33,7 @@
 - 部署目录与仓同步:deploy/config.example.yaml 同形更新(xai 组占位符、claude 组补 flash、纪律注);手册 §5 与 README 加接入页链接
 - 注意事项报总台:本仓 raystyle/overcast 为 public,内网地址按派单明示入库;若需改角色名写法,另立单裁定
 - 追记(2026-10-11,总台通知):网关地址由 192.168.88.169 变更为 192.168.88.10(本机 en0 现值;新址实测 /v1/models 200,旧址已 000),本页与接入页已同步替换
+- 追记二(2026-10-11,本机客户端切换实测):Claude Code settings.json 落 env 四键(BASE_URL/AUTH_TOKEN/MODEL=glm-5.3[1m]/SMALL_FAST_MODEL=glm-5.3-flash),裸 `claude -p` 两发通(15,4.2s;5,20.9s);`[1m]` 是客户端 1M 变体名,上游 400,网关加 claude 组别名映射后经网关 200(model 回显 glm-5.3)。Codex config.toml 切 model=glm-5.3 加 zai provider(wire responses,env_key),models.json 以既有条目为模板补 glm-5.3(codex 反序列化要求全套字段,缺 shell_type 报 parse 错,精简形不可用),codex exec 实测通(19,65s 首轮)。两侧原配置均备份(.bak-ov03 后缀)
 - commit 已推远端:payload `1ca8d63` 加本回执笔,push 结果见会话摘要
 
 ## 件 4:驻留注记(过)
