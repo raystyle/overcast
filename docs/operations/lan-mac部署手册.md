@@ -17,20 +17,30 @@ lan-mac 部署目录建议 `~/overcast/`(部署批定,三件同目录):
 
 ```
 ~/overcast/
-  docker-compose.yml    # 从本仓 deploy/ 拷或 git 拉取
+  up.sh / down.sh       # 起停(compose 等价形,2026-10-11 部署批落)
+  docker-compose.yml    # 仓内 deploy/ 持,compose 插件可用时同义用
   config.yaml           # 金库渲染(源:deploy/config.example.yaml 占位符),0600,不进仓
   auths/                # 凭据卷(OAuth 类凭据落点),不进仓
+  config.yaml.bak-*     # 部署批修正留档(port 修正、claude 组改形)
 ```
 
 渲染纪律:两把智谱 key 必须同种产品;渲染完 `stat -f %Lp config.yaml` 核 0600;`access.api-keys` 发给客户端的网关 key 与智谱 key 分离管理。
 
 ## 3. 起服
 
+lan-mac 实况无 docker compose 插件、无 docker-compose 二进制(2026-10-11 实测;装 brew 包越「只动部署目录」界),部署目录内用 compose 等价形:
+
 ```bash
 cd ~/overcast
-docker compose up -d
-docker logs overcast --tail 50           # 起服无错;管理面应保持远程关闭
+./up.sh                                  # docker run 等价形,参数与仓内 deploy/docker-compose.yml 逐项同
+./down.sh                                # 停服回滚(容器删,config 与 auths 留档)
+docker logs overcast --tail 50
 ```
+
+起服必核两行日志(2026-10-11 实测坑):
+
+- `API server started successfully on: :8317` ——若是 `:0`,config 漏了根级 `port: 8317`,上游缺省监听随机端口,宿主映射落空(三发 curl 全 000 的根因)
+- `... N clients (... 2 Claude API keys ... 2 OpenAI-compat)` ——claude 组与 openai 组各两把;若 Claude 记 1,该组多 key 形制错了(见 §7)
 
 镜像钉 tag(`eceasy/cli-proxy-api:v8.0.23`,arm64 层已有),**不用 latest**。
 
@@ -55,14 +65,17 @@ key:网关发的 access key,不是智谱 key
 
 ## 6. 运维
 
-- **升级**:改 compose 里 tag 跟 v8 补丁号(上游几乎按天发版),`docker compose up -d` 重建;config 与 auths 卷外置不动
-- **秘密轮换**:金库重渲染 config.yaml → `docker compose restart`;key 失效期间冷却表不迁移(内存态,重启清零)
+- **升级**:改 up.sh 里 tag 跟 v8 补丁号(上游几乎按天发版),`./down.sh && ./up.sh` 重建;config 与 auths 卷外置不动(compose 插件可用时同义改 deploy/docker-compose.yml)
+- **秘密轮换**:金库重渲染 config.yaml 落部署目录(0600)→ `docker restart overcast`;key 失效期间冷却表不迁移(内存态,重启清零);改 config 的热通道:file watcher 在盯配置变化,轻改可不重启,大改建议重启收口
 - **日志**:`docker logs overcast`;换 key 与冷却在日志有 auth id 痕迹,验收与排障先看这里
 - **升降级回退**:tag 改回上一版 `up -d` 即回(无状态迁移)
-- **停服**:`cd ~/overcast && docker compose down`(保卷);`colima stop` 连运行时一起停
+- **停服**:`cd ~/overcast && ./down.sh`(保卷);`colima stop` 连运行时一起停
 
 ## 7. 已知边界
 
 - 流式首包后断流不换 key 不重放,agent 侧重开一轮(ADR-0001 继承上游语义)
 - 冷却态默认不落盘(`save-cooldown-status` 默认 false);若后续观测(REQ-001 能力三)显示重启风暴导致冷却抖动,再评估开它,首版不开
 - 智谱失败形态若落在 body(400 文案限流、200 带业务失败),按 design-001 §1.3 升级阶梯先配 `request-scoped-errors`,不改代码
+- **多 key 形制两组不同**(2026-10-11 实测):openai-compatibility 组用 `api-key-entries` 列表;claude-api-key 组必须每把 key 一个条目(`api-key:` 单数)——在该组用 `api-key-entries` 会载入 1 个空 key 客户端,上游 401 报「Header中未收到Authorization参数」,日志痕迹 `auth=api_key=`(空值)
+- **port 必写**:config 缺根级 `port: 8317` 时上游监听 `:0` 随机端口,起服日志可见,外部一律连不上
+- 外部无 key 探 `GET /v1/models` 得 401 属预期(鉴权墙在);带网关 key 的 200 实测在 lan-mac 本机做(key 不出机)
