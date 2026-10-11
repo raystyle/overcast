@@ -28,4 +28,4 @@ overcast 立项(单 ov-01,2026-10-11)要智谱双 token failover。候选四案�
 - 舰队现有模板的全局 `disable-cooling: true`(旧版 count_tokens 规避,v7.1.16 起症状已消失)在升 v8 后应退役;同机已有别的 CPA 时不得两台同时当同一批 agent 的上游(两套冷却各算各的)
 - 注入与 CH 两能力若需代码,优先侧车(sidecar)或上游小补丁形态,不改本裁定的「不 fork」主干
 
-状态说明:proposed;验收门槛 = research-01 总台评审过 + 部署批双 key 实测验收过(判据见 REQ-001),过门槛转 accepted。进度(2026-10-11 单 ov-03):实测侧已过(判据 1/2,请求级换 key 证据 `[98c55a49]`);评审侧未过,research-01 总台评审未启动。
+状态说明:proposed;验收门槛 = research-01 总台评审过 + 部署批双 key 实测验收过(判据见 REQ-001),过门槛转 accepted。进度(2026-10-11 单 ov-03):实测侧已过(判据 1/2,请求级换 key 证据 `[98c55a49]`);评审侧未过,research-01 总台评审未启动。勘误(2026-10-12,cfg-01 G1):Decision 句的 `api-key-entries` 机制仅 openai-compatibility 组适用;claude-api-key 组实测不认该形(载入空 key 客户端,上游 401),须拆多条目、每条一把 `api-key`(REQ-001 判据 1);responses 面新增的 xai-api-key 组为 legacy 单 key 条目形。

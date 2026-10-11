@@ -63,12 +63,14 @@ docker logs overcast --tail 50
 端点与模型名速查:
 
 ```text
-base-url:  http://lan-mac:8317
+base-url:  http://192.168.88.10:8317
 Claude Code 走 /v1/messages;codex 走 /v1/responses;chat 走 /v1/chat/completions
 messages 面(Claude Code):zp-cc-glm53、zp-cc-glm53fh,另保留裸名 glm-5.3(旧会话剥掉 [1m] 后仍发这个)
 responses 面(Codex):zp-cx-glm53、zp-cx-glm5t;chat 面:zp-cx-chat
 key:网关发的 access key,不是智谱 key
 ```
+
+base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(本网客户端实测路径)。主机名形 `http://lan-mac:8317` 经 ts 域解析到同机另一网口(10.10.10.9),docker 全接口监听,实测等效可用;前提是客户端具备该域解析,不具备则一律用 IP 形。
 
 逐客户端配置(Claude settings env 形、codex config.toml 加 models.json)见 [客户端接入](客户端接入.md)。
 
@@ -89,6 +91,7 @@ key:网关发的 access key,不是智谱 key
 - **`[1m]` 后缀是纯客户端参数,网关别名不带这段**(2026-10-11 对照实测):Claude Code settings 写 `zp-cc-glm53[1m]` / `zp-cc-glm53fh[1m]` 开 1M 上下文,CC 发请求前自己剥后缀,网关收到 `zp-cc-glm53` / `zp-cc-glm53fh`;带 `[1m]` 的名字直打网关会 400 unknown provider
 - **port 必写**:config 缺根级 `port: 8317` 时上游监听 `:0` 随机端口,起服日志可见,外部一律连不上
 - **responses 面必须走 xai-api-key 组**(2026-10-11 实测):智谱 `/api/v1` 是 Responses-only 面(chat/completions 双模型 403 model_access_denied,responses 双模型 200),openai-compatibility 执行器把 Responses 请求翻译成 chat 发上游必 403;xai-api-key 组走原生 Responses 执行器直通上游 /responses,legacy 形每条目一把 key
+- **裸名 glm-5.3 路由已验**(2026-10-12):经 /v1/messages 实测 200,响应为 anthropic 原生 id 形(msg_ 前缀,非 xai 面 resp_ 形),确认落 claude 执行器、无跨组抢名;命名 rollout 后该兜底仍有效
 
 ## 8. 思考块调试注入(能力二 v1,2026-10-11)
 
