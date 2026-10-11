@@ -1,4 +1,4 @@
-# AGENTS.md — 给在本仓工作的 agent
+# AGENTS.md: 给在本仓工作的 agent
 
 ## 这是什么仓
 
@@ -16,8 +16,8 @@ overcast:lan-mac 上智谱双 token failover + prompt 实时注入 + ClickHouse 
 
 ## 文档框架(evo-doc doc-gov)
 
-- 新需求先立 REQ 再实现(`docs/requirements/`,draft → implemented 回填 trace;判据必须是可检验句)
-- 不可逆技术选择先立 ADR(`docs/adr/`,proposed → accepted → superseded 互指)
+- 新需求先立 REQ 再实现(`docs/requirements/`,draft 到 implemented 回填 trace;判据必须是可检验句)
+- 不可逆技术选择先立 ADR(`docs/adr/`,proposed 到 accepted 到 superseded 互指)
 - 课题证据走研究档(`docs/research/`,S 编号一题一篇,结论标六态;「没验证」不写成「已验证」)
 - 部署与运维面在 `docs/operations/`;设计案在 `docs/design/`
 

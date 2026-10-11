@@ -29,7 +29,7 @@
 s5 CLI 候首版(仓 `s5_rs`,尚未定版),现阶段轮次档走**本机路径过渡**(即上表路径);首版可用后切 s5 键空间:
 
 - 键形:`overcast/rounds/<轮次>/<单号>-{brief,state,receipt}.md`(路径即键,往返一致)
-- 总台派单仍走 herdr prompt(prompt 自包含,brief 全文随 prompt 内联——跨机够不到本机路径);回执时 receipt 全文随回执内联,本机文件只作底稿与对账锚
+- 总台派单仍走 herdr prompt(prompt 自包含,brief 全文随 prompt 内联,跨机够不到本机路径);回执时 receipt 全文随回执内联,本机文件只作底稿与对账锚
 - 断言面:总台按 receipt 文本对账,需要盘上核证时经 s5 get 取键空间档
 - 切换裁定:等 s5 CLI 定版后立同步型周知单告知各工位,过渡期两通道并存以 s5 为准、本机路径为底稿
 

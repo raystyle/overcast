@@ -14,7 +14,7 @@ tags: ['定位', '上游', 'failover']
 
 ## Context
 
-overcast 立项(单 ov-01,2026-10-11)要智谱双 token failover。候选四案对照见研究档 research-01(总台在途,已落「网关五件」节):CLIProxyAPI v8.0.23、LiteLLM、new-api、自研薄层。关键事实:上游 v8 的 conductor(`sdk/cliproxy/auth/conductor_execution.go` 的 `executeMixedOnce`)已会在同一次请求里换下一把 key,并按状态码冷却失败 key(`conductor_cooldown.go`):401/402/403 冷却 30 分钟,429 尊重 Retry-After,408 与 5xx 短冷却,400 类请求错误不换 key 不惩罚。GLM 无原生执行器,走 openai-compatibility(智谱 OpenAI 兼容 base `https://open.bigmodel.cn/api/paas/v4/`),Claude Code 面走 claude-api-key(base `https://open.bigmodel.cn/api/anthropic`)。舰队现模板把 `disable-cooling` 全局开 true 且只挂一把 key,备份账户实际用不上——是配置问题,不是能力缺失。上游发版极密(v8 几乎按天),长期 fork 会在 conductor 上反复冲突。
+overcast 立项(单 ov-01,2026-10-11)要智谱双 token failover。候选四案对照见研究档 research-01(总台在途,已落「网关五件」节):CLIProxyAPI v8.0.23、LiteLLM、new-api、自研薄层。关键事实:上游 v8 的 conductor(`sdk/cliproxy/auth/conductor_execution.go` 的 `executeMixedOnce`)已会在同一次请求里换下一把 key,并按状态码冷却失败 key(`conductor_cooldown.go`):401/402/403 冷却 30 分钟,429 尊重 Retry-After,408 与 5xx 短冷却,400 类请求错误不换 key 不惩罚。GLM 无原生执行器,走 openai-compatibility(智谱 OpenAI 兼容 base `https://open.bigmodel.cn/api/paas/v4/`),Claude Code 面走 claude-api-key(base `https://open.bigmodel.cn/api/anthropic`)。舰队现模板把 `disable-cooling` 全局开 true 且只挂一把 key,备份账户实际用不上,这是配置问题,不是能力缺失。上游发版极密(v8 几乎按天),长期 fork 会在 conductor 上反复冲突。
 
 ## Decision
 
@@ -28,4 +28,4 @@ overcast 立项(单 ov-01,2026-10-11)要智谱双 token failover。候选四案�
 - 舰队现有模板的全局 `disable-cooling: true`(旧版 count_tokens 规避,v7.1.16 起症状已消失)在升 v8 后应退役;同机已有别的 CPA 时不得两台同时当同一批 agent 的上游(两套冷却各算各的)
 - 注入与 CH 两能力若需代码,优先侧车(sidecar)或上游小补丁形态,不改本裁定的「不 fork」主干
 
-状态说明:proposed;验收门槛 = research-01 总台评审过 + 部署批双 key 实测验收过(判据见 REQ-001),过门槛转 accepted。
+状态说明:proposed;验收门槛 = research-01 总台评审过 + 部署批双 key 实测验收过(判据见 REQ-001),过门槛转 accepted。进度(2026-10-11 单 ov-03):实测侧已过(判据 1/2,请求级换 key 证据 `[98c55a49]`);评审侧未过,research-01 总台评审未启动。
