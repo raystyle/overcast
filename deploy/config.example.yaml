@@ -1,17 +1,19 @@
 # overcast 配置模板:占位符由金库渲染,真值永不进仓(渲染后 0600)
-# 形制核验:上游 v8.0.23 config.example.yaml + 2026-10-11 lan-mac 实测
+# 形制核验:上游 v8.0.23 config.example.yaml 与 config_types.go + 2026-10-11 lan-mac 实测
 #
 # 纪律:
 # - port 必写:缺省时上游监听随机端口(:0),宿主 8317 映射落空(2026-10-11 实测坑)
 # - base-url 不写 /chat/completions 后缀(执行器自接)
-# - 两把 key 必须同种产品:通用开放平台 key 配 paas/v4;编码套餐 key 配
+# - 两把 key 必须同种产品:通用开放平台 key 配 paas/v4 与 /api/v1;编码套餐 key 配
 #   https://open.bigmodel.cn/api/coding/paas/v4,不混填同一 base
 # - openai-compatibility 组多 key 用 api-key-entries;claude-api-key 组多 key
 #   必须拆成多个条目、每条一个 api-key(api-key-entries 在该组不生效,2026-10-11 实测:
 #   载入 1 个空 key 客户端,上游 401;拆两条目后载入 2 Claude API keys)
+# - xai-api-key 组(Responses 原生执行器)legacy 形每条目一把 key(同 CodexKey 形),
+#   无 name: 字段、无 keys: 列表(2026-10-11 对照上游 config_types.go 核验)
 # - 上游 v8 另有根 api-keys: 新版式(组内 keys: 列表),legacy 拼法仍受支持;
 #   本模板沿用 legacy 拼法,迁新版式待上游再核
-# - 智谱两组显式 disable-cooling: false(不继承舰队旧模板的全局 true)
+# - 智谱各组显式 disable-cooling: false(不继承舰队旧模板的全局 true)
 
 port: 8317
 
@@ -25,7 +27,7 @@ routing:
   cooldown:
     disable-cooling: false
 
-# chat 面(OpenAI 兼容):codex 与 chat 客户端走这组
+# chat 面(OpenAI 兼容):chat 客户端走这组
 openai-compatibility:
   - name: glm
     base-url: "https://open.bigmodel.cn/api/paas/v4"
@@ -47,6 +49,7 @@ claude-api-key:
     models:
       - name: "glm-5.3"
         alias: "zp-glm53-claude"
+      - name: "glm-5.3-flash"
   - name: glm-claude-b
     base-url: "https://open.bigmodel.cn/api/anthropic"
     disable-cooling: false
@@ -54,6 +57,28 @@ claude-api-key:
     models:
       - name: "glm-5.3"
         alias: "zp-glm53-claude"
+      - name: "glm-5.3-flash"
+
+# responses 面(OpenAI Responses wire 客户端走 /v1/responses):上游智谱开放平台 /api/v1
+# 上游 /api/v1 是 Responses-only 面(2026-10-11 直探:chat/completions 对 glm-5.3 与
+# glm-5-turbo 均 403 model_access_denied;/responses 双模型 200)。openai-compatibility
+# 执行器会把 Responses 请求翻译成 chat 发上游,在该 base 必 403,故用 xai-api-key 组
+# (CPA 原生 Responses 执行器)直通上游 /responses;实测经网关 /v1/responses 双模型 200
+xai-api-key:
+  - api-key: "{{cpa_zhipu_key}}"
+    base-url: "https://open.bigmodel.cn/api/v1"
+    disable-cooling: false
+    request-retry: 3
+    models:
+      - name: "glm-5.3"
+      - name: "glm-5-turbo"
+  - api-key: "{{cpa_zhipu_key_2}}"
+    base-url: "https://open.bigmodel.cn/api/v1"
+    disable-cooling: false
+    request-retry: 3
+    models:
+      - name: "glm-5.3"
+      - name: "glm-5-turbo"
 
 # 客户端进网关的钥匙,与智谱 key 分开;客户端只见这里发的 key
 access:

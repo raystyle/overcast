@@ -44,7 +44,8 @@ overcast 不是网关代码仓。总体形态 = 上游 CLIProxyAPI 官方镜像�
 
 1. **chat 面**:openai-compatibility 条目,name `glm`,base `https://open.bigmodel.cn/api/paas/v4`(执行器自接 `/chat/completions`,base 里不写这段),`api-key-entries` 两行两把 key,`disable-cooling: false`,`request-retry: 3`
 2. **messages 面**:claude-api-key 条目,base `https://open.bigmodel.cn/api/anthropic`,同样两把 key 拆两条、冷却开;chat 池与 messages 池互不代替
-3. 两把 key 必须同种产品(通用开放平台 key 用 `paas/v4`;编码套餐 key 用 `https://open.bigmodel.cn/api/coding/paas/v4`,不混填);**不要把两把 key 配成两个模型别名**——别名池是换上游模型名,不是换账户
+3. **responses 面**(2026-10-11 单 ov-03 补):xai-api-key 条目,base `https://open.bigmodel.cn/api/v1`,两把 key 拆两条(legacy CodexKey 形,每条一把);智谱 /api/v1 是 Responses-only 面,openai-compatibility 执行器的 chat 翻译在该 base 必 403,故用 CPA 原生 Responses 执行器(xai 组)直通上游 /responses
+3. 两把 key 必须同种产品(通用开放平台 key 用 `paas/v4` 与 `/api/v1`;编码套餐 key 用 `https://open.bigmodel.cn/api/coding/paas/v4`,不混填);**不要把两把 key 配成两个模型别名**,别名池是换上游模型名,不是换账户
 4. 全局 `routing`:strategy round-robin,`session-affinity: false`,冷却不全局关(旧版 count_tokens 规避已随 v7.1.16 消失,不继承舰队旧模板的全局 `disable-cooling: true`)
 5. 网关自己的访问 key 在 `access.api-keys`,与智谱 key 分离;管理面 `management.allow-remote: false`,secret 留空
 
@@ -52,10 +53,10 @@ overcast 不是网关代码仓。总体形态 = 上游 CLIProxyAPI 官方镜像�
 
 ### 1.3 升级阶梯(问题出现时的处置序)
 
-1. 换 key 不生效 → 先查冷却与配置(两组 `disable-cooling: false` 是否真渲染进去)
-2. 智谱错误形态在 body(如 HTTP 200 带业务失败、400 带限流文案)→ 配 `request-scoped-errors` 按 body 子串改 `continue-and-cooldown`
-3. 配置盖不住 → 二开条件句(分类函数小提交往上游提,见 0 节)
-4. 流式中断 → 客户端重开一轮,网关侧无动作(语义继承上游)
+1. 换 key 不生效:先查冷却与配置(两组 `disable-cooling: false` 是否真渲染进去)
+2. 智谱错误形态在 body(如 HTTP 200 带业务失败、400 带限流文案):配 `request-scoped-errors` 按 body 子串改 `continue-and-cooldown`
+3. 配置盖不住:走二开条件句(分类函数小提交往上游提,见 0 节)
+4. 流式中断:客户端重开一轮,网关侧无动作(语义继承上游)
 
 ### 1.4 验收
 
@@ -68,7 +69,7 @@ overcast 不是网关代码仓。总体形态 = 上游 CLIProxyAPI 官方镜像�
 已知输入:
 
 - 上游参考:qiontoo/cliproxyapi-system-prompt-injection(prompt 注入补丁参考,license 与可合入性待核)
-- 需求语义:注入要**热改**——不重启容器、不断在跑流;注入生效面(at request 入口)与热改通道(配置 reload 或独立控制面)是两个正交决定
+- 需求语义:注入要**热改**,即不重启容器、不断在跑流;注入生效面(at request 入口)与热改通道(配置 reload 或独立控制面)是两个正交决定
 
 开放问题(研究档落节后逐条对答):
 
