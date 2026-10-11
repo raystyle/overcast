@@ -89,4 +89,27 @@ key:网关发的 access key,不是智谱 key
 - **`[1m]` 后缀是纯客户端参数,网关别名不带这段**(2026-10-11 对照实测):Claude Code settings 写 `zp-cc-glm53[1m]` / `zp-cc-glm53fh[1m]` 开 1M 上下文,CC 发请求前自己剥后缀,网关收到 `zp-cc-glm53` / `zp-cc-glm53fh`;带 `[1m]` 的名字直打网关会 400 unknown provider
 - **port 必写**:config 缺根级 `port: 8317` 时上游监听 `:0` 随机端口,起服日志可见,外部一律连不上
 - **responses 面必须走 xai-api-key 组**(2026-10-11 实测):智谱 `/api/v1` 是 Responses-only 面(chat/completions 双模型 403 model_access_denied,responses 双模型 200),openai-compatibility 执行器把 Responses 请求翻译成 chat 发上游必 403;xai-api-key 组走原生 Responses 执行器直通上游 /responses,legacy 形每条目一把 key
+
+## 8. 思考块调试注入(能力二 v1,2026-10-11)
+
+形态:配置态 `requests.payload.override` / `override-raw`,请求头 `X-Overcast-Debug` 门控,不带头零改动;规则见 config 的 requests 段(仓内模板同形)。
+
+```bash
+# effort 档调试(responses 面,/v1/responses):
+curl -H 'X-Overcast-Debug: low'  ... # 低推理档(响应无 reasoning 项,快)
+curl -H 'X-Overcast-Debug: high' ... # 高推理档(带 reasoning 项)
+
+# 净室调试(claude 面,/v1/messages):全换 system 为调试沙盒提示词
+curl -H 'X-Overcast-Debug: cleanroom' ...
+
+# 假 thinking 锚注入(claude 面):messages[1] 放 assistant 占位轮,头带 anchor,
+# 网关把该轮 content 整块换成伪造 thinking 块(智谱不校验 signature)
+curl -H 'X-Overcast-Debug: anchor' ...
+```
+
+- **门控嵌套坑**(2026-10-11 源码比对实证):`headers`/`from-protocol` 等门控字段必须嵌在每个 models 条目内(与 name/protocol 同级);写在规则层会被静默丢弃,规则变成无门控裸规则,首版部署曾中坑已修
+- 旋钮边界(直探上游实证):responses 面 `reasoning.effort` 认;claude 面 `thinking.budget_tokens` 不认(不作旋钮);`system`/`instructions` 全换语义,prepend 合并留 v2 侧车
+- 热改:改 requests.payload 段 params 值存盘即热加载(轻改);新增规则或新根级段重启收口
+- 热改脚本:`sh ~/overcast/inject.sh '<新 system 文本>'` 直改 cleanroom 规则的 system 行
+- CC 加头法:settings.json env `ANTHROPIC_CUSTOM_HEADERS`(逗号分隔多对);curl/codex 直接加
 - 外部无 key 探 `GET /v1/models` 得 401 属预期(鉴权墙在);带网关 key 的 200 实测在 lan-mac 本机做(key 不出机)

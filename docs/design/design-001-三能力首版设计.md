@@ -62,22 +62,29 @@ overcast 不是网关代码仓。总体形态 = 上游 CLIProxyAPI 官方镜像�
 
 判据在 REQ-001 能力一(401 换 key、400 不换、流式掐断、key 分离、断网恢复、同机无双上游),由部署批在 lan-mac 实测执行。
 
-## 2. 能力二:system prompt 实时注入(留位)
+## 2. 能力二:system prompt 实时注入(v1 配置态实写,2026-10-11)
 
-> **留位**:本节待 research-01「注入三件」落节后回填设计;以下只固化已知边界与开放问题,不是设计结论。
+> v1 落地形态由单 ov-03 追加任务定:用户主诉求是**调试思考块**。v1 走配置态(requests.payload override),零代码零侧车,符合 ADR-0001 配置态优先裁定;prepend 合并形留 v2。
 
-已知输入:
+### 2.1 v1 形态(直探上游实证,网关门控待验)
 
-- 上游参考:qiontoo/cliproxyapi-system-prompt-injection(prompt 注入补丁参考,license 与可合入性待核)
-- 需求语义:注入要**热改**,即不重启容器、不断在跑流;注入生效面(at request 入口)与热改通道(配置 reload 或独立控制面)是两个正交决定
+- **通道**:`requests.payload.override` / `override-raw` 规则,上游 CPA 原生能力;gjson/sjson 路径直改请求体
+- **门控**:请求头 `X-Overcast-Debug` 匹配才改体,正常流量零改动(不带头=完全 passthrough)
+- **门控嵌套坑**(2026-10-11 源码比对实证):`headers`/`from-protocol`/`match` 等门控字段必须嵌在**每个 models 条目内**(与 name/protocol 同级);写在规则层(models 同级)会被 Go yaml 静默丢弃,规则退化为无门控裸规则。首版部署曾中此坑,已修
+- **协议字段语义**(上游 v8.0.23 官方样例):`protocol` 是目标翻译格式,枚举 openai/gemini/claude/codex/antigravity(xai 执行器即 responses 面用 `codex`);`from-protocol` 是来源格式,枚举 openai/responses/gemini/claude;`name` 未言明匹配客户端名还是别名解析后的上游名,规则里双名字兜底
+- **旋钮**(2026-10-11 直探上游实证):
+  - responses 面 `reasoning.effort`:**认**(low 155 token 无 reasoning 项 / high 934 token 带,差异显著)
+  - claude 面 `thinking.budget_tokens`:**不认**(256 与 4096 思考长度无差),不作旋钮
+  - `system`(claude 面)/`instructions`(responses 面):**全换语义**(净室调试,替换客户端自带 system)
+- **假 thinking 锚注入**(override-raw):客户端在 `messages[1]` 放 assistant 占位轮,网关把该轮 content 整块替换为伪造 thinking 块 + 配套 text 块;智谱 anthropic 面不校验 signature,实测收伪造 thinking。用途:测模型对上轮思考的锚定强度
+- **热改通道**:改 config.yaml 存盘,file watcher 轻改热加载;追加新根级段属大改,重启收口(实测 requests 段追加未见热加载日志,重启生效)
+- **用法**:`curl -H 'X-Overcast-Debug: low'` 打网关 responses 面即得低推理档;`cleanroom` 头换调试沙盒 system;`anchor` 头触发假 thinking 锚注入
 
-开放问题(研究档落节后逐条对答):
+### 2.2 开放问题(v2 面)
 
-- [ ] 注入面粒度:全局、按模型别名、按客户端(cc 与 codex 面不同 system 结构)、按 access key?
-- [ ] 注入位置:prepend 到既有 system、append、还是替换?与客户端自带 system prompt 的合并语义?
-- [ ] 热改通道:上游有无 config 热加载;无则侧车(独立注入代理层)或上游小补丁,谁改谁持有?
-- [ ] 与能力一叠加:注入后的请求若触发换 key 重试,注入是否随重试保留(同一请求体重放应天然保留,需实测确认)?
-- [ ] 与能力三叠加:注入内容是否入 CH 回溯(审计面要能回放当轮生效的 prompt)?
+- [ ] prepend/append 合并语义:payload override 只有全换,合并非破坏注入需侧车或上游小补丁(qiontoo/cliproxyapi-system-prompt-injection 参考,license 待核)
+- [ ] 与能力一叠加:注入后的请求触发换 key 重试时注入随同体重放保留(应天然成立,强测确认后勾)
+- [ ] 与能力三叠加:注入内容入 CH 回溯(审计面回放当轮生效 prompt)
 
 ## 3. 能力三:ClickHouse 全量回溯观测(留位)
 
