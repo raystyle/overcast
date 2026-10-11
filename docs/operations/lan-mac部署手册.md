@@ -86,7 +86,7 @@ key:网关发的 access key,不是智谱 key
 - 冷却态默认不落盘(`save-cooldown-status` 默认 false);若后续观测(REQ-001 能力三)显示重启风暴导致冷却抖动,再评估开它,首版不开
 - 智谱失败形态若落在 body(400 文案限流、200 带业务失败),按 design-001 §1.3 升级阶梯先配 `request-scoped-errors`,不改代码
 - **多 key 形制两组不同**(2026-10-11 实测):openai-compatibility 组用 `api-key-entries` 列表;claude-api-key 组必须每把 key 一个条目(`api-key:` 单数),在该组用 `api-key-entries` 会载入 1 个空 key 客户端,上游 401 报「Header中未收到Authorization参数」,日志痕迹 `auth=api_key=`(空值)
-- **`[1m]` 模型名走网关别名**(2026-10-11 实测):Claude Code 客户端认 `glm-5.3[1m]` 1M 变体名,上游不认(直探 400 模型不存在);claude 组两条目各配一行 `- name: "glm-5.3"` 加 `alias: "glm-5.3[1m]"` 映射,客户端名不变、上游收原始名
+- **`[1m]` 模型名走网关别名**(2026-10-11 实测):Claude Code 客户端认 `glm-5.3[1m]` 与 `glm-5.3-flash[1m]` 1M 变体名,上游不认(直探 400 模型不存在,官方原始名仍是 glm-5.3 / glm-5.3-flash);claude 组两条目各配两行别名映射(glm-5.3[1m] 与 glm-5.3-flash[1m]),客户端名不变、上游收原始名
 - **port 必写**:config 缺根级 `port: 8317` 时上游监听 `:0` 随机端口,起服日志可见,外部一律连不上
 - **responses 面必须走 xai-api-key 组**(2026-10-11 实测):智谱 `/api/v1` 是 Responses-only 面(chat/completions 双模型 403 model_access_denied,responses 双模型 200),openai-compatibility 执行器把 Responses 请求翻译成 chat 发上游必 403;xai-api-key 组走原生 Responses 执行器直通上游 /responses,legacy 形每条目一把 key
 - 外部无 key 探 `GET /v1/models` 得 401 属预期(鉴权墙在);带网关 key 的 200 实测在 lan-mac 本机做(key 不出机)

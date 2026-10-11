@@ -34,6 +34,7 @@
 - 注意事项报总台:本仓 raystyle/overcast 为 public,内网地址按派单明示入库;若需改角色名写法,另立单裁定
 - 追记(2026-10-11,总台通知):网关地址由 192.168.88.169 变更为 192.168.88.10(本机 en0 现值;新址实测 /v1/models 200,旧址已 000),本页与接入页已同步替换
 - 追记二(2026-10-11,本机客户端切换实测):Claude Code settings.json 落 env 四键(BASE_URL/AUTH_TOKEN/MODEL=glm-5.3[1m]/SMALL_FAST_MODEL=glm-5.3-flash),裸 `claude -p` 两发通(15,4.2s;5,20.9s);`[1m]` 是客户端 1M 变体名,上游 400,网关加 claude 组别名映射后经网关 200(model 回显 glm-5.3)。Codex config.toml 切 model=glm-5.3 加 zai provider(wire responses,env_key),models.json 以既有条目为模板补 glm-5.3(codex 反序列化要求全套字段,缺 shell_type 报 parse 错,精简形不可用),codex exec 实测通(19,65s 首轮)。两侧原配置均备份(.bak-ov03 后缀)
+- 追记三(2026-10-11,对齐官方配置参考):settings.json 改 DEFAULT 三件套形(HAIKU=glm-5.3-flash[1m]、SONNET/OPUS=glm-5.3[1m],旧 MODEL/SMALL_FAST 两键删),AUTO_COMPACT_WINDOW=1000000 补;官方原始 API 模型名仍是 glm-5.3 / glm-5.3-flash(直探复核),[1m] 只在客户端 settings 侧,网关补 flash[1m] 别名映射;codex 侧对齐官方元数据(models.json 官方形:glm-5.3 带 max 档、glm-5-turbo 200k 窗;config.toml 补 model_reasoning_effort=max),key 仍走 env_key 环境变量不落文件明文。复测:claude 裸测 25(3.8s),codex exec 50(11.8s)
 - commit 已推远端:payload `1ca8d63` 加本回执笔,push 结果见会话摘要
 
 ## 件 4:驻留注记(过)
