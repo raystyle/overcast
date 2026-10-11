@@ -65,8 +65,8 @@ docker logs overcast --tail 50
 ```text
 base-url:  http://lan-mac:8317
 Claude Code 走 /v1/messages;codex 走 /v1/responses;chat 走 /v1/chat/completions
-messages 面:glm-5.3(别名 zp-glm53-claude)、glm-5.3-flash
-responses 面:glm-5.3、glm-5-turbo;chat 面:别名 zp-glm53-codex
+messages 面(Claude Code):zp-cc-glm53、zp-cc-glm53fh,另保留裸名 glm-5.3(旧会话剥掉 [1m] 后仍发这个)
+responses 面(Codex):zp-cx-glm53、zp-cx-glm5t;chat 面:zp-cx-chat
 key:网关发的 access key,不是智谱 key
 ```
 
@@ -86,7 +86,7 @@ key:网关发的 access key,不是智谱 key
 - 冷却态默认不落盘(`save-cooldown-status` 默认 false);若后续观测(REQ-001 能力三)显示重启风暴导致冷却抖动,再评估开它,首版不开
 - 智谱失败形态若落在 body(400 文案限流、200 带业务失败),按 design-001 §1.3 升级阶梯先配 `request-scoped-errors`,不改代码
 - **多 key 形制两组不同**(2026-10-11 实测):openai-compatibility 组用 `api-key-entries` 列表;claude-api-key 组必须每把 key 一个条目(`api-key:` 单数),在该组用 `api-key-entries` 会载入 1 个空 key 客户端,上游 401 报「Header中未收到Authorization参数」,日志痕迹 `auth=api_key=`(空值)
-- **`[1m]` 后缀是纯客户端参数,网关不配别名**(2026-10-11 对照实测):Claude Code settings 可写 `glm-5.3[1m]` 开 1M 上下文,CC 发请求前自己剥后缀,网关与上游收原始名 glm-5.3 / glm-5.3-flash;给网关配 [1m] 别名无必要(撤除后裸 claude 照样 200),且带 [1m] 的请求直打网关会 400 unknown provider,剥后缀只发生在 CC 客户端
+- **`[1m]` 后缀是纯客户端参数,网关别名不带这段**(2026-10-11 对照实测):Claude Code settings 写 `zp-cc-glm53[1m]` / `zp-cc-glm53fh[1m]` 开 1M 上下文,CC 发请求前自己剥后缀,网关收到 `zp-cc-glm53` / `zp-cc-glm53fh`;带 `[1m]` 的名字直打网关会 400 unknown provider
 - **port 必写**:config 缺根级 `port: 8317` 时上游监听 `:0` 随机端口,起服日志可见,外部一律连不上
 - **responses 面必须走 xai-api-key 组**(2026-10-11 实测):智谱 `/api/v1` 是 Responses-only 面(chat/completions 双模型 403 model_access_denied,responses 双模型 200),openai-compatibility 执行器把 Responses 请求翻译成 chat 发上游必 403;xai-api-key 组走原生 Responses 执行器直通上游 /responses,legacy 形每条目一把 key
 - 外部无 key 探 `GET /v1/models` 得 401 属预期(鉴权墙在);带网关 key 的 200 实测在 lan-mac 本机做(key 不出机)

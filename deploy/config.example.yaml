@@ -14,6 +14,10 @@
 # - 上游 v8 另有根 api-keys: 新版式(组内 keys: 列表),legacy 拼法仍受支持;
 #   本模板沿用 legacy 拼法,迁新版式待上游再核
 # - 智谱各组显式 disable-cooling: false(不继承舰队旧模板的全局 true)
+# - 客户端可见名按调用方拆开,同一名字不能跨执行器:Claude Code 用 zp-cc-*,
+#   Codex 用 zp-cx-*(responses 为 zp-cx-glm53 / zp-cx-glm5t,chat 为 zp-cx-chat)。
+#   别名替换上游名。Claude 组另挂一条 alias glm-5.3,旧会话剥掉 [1m] 后发的裸名仍进
+#   messages 执行器。Codex 只用 zp-cx-*,不登记裸名
 
 port: 8317
 
@@ -38,7 +42,7 @@ openai-compatibility:
       - api-key: "{{cpa_zhipu_key_2}}"
     models:
       - name: "glm-5.3"
-        alias: "zp-glm53-codex"
+        alias: "zp-cx-chat"
 
 # messages 面(Claude Code 走这组):chat 池与 messages 池互不代替
 claude-api-key:
@@ -48,16 +52,22 @@ claude-api-key:
     api-key: "{{cpa_zhipu_key}}"
     models:
       - name: "glm-5.3"
-        alias: "zp-glm53-claude"
+        alias: "zp-cc-glm53"
+      - name: "glm-5.3"
+        alias: "glm-5.3"
       - name: "glm-5.3-flash"
+        alias: "zp-cc-glm53fh"
   - name: glm-claude-b
     base-url: "https://open.bigmodel.cn/api/anthropic"
     disable-cooling: false
     api-key: "{{cpa_zhipu_key_2}}"
     models:
       - name: "glm-5.3"
-        alias: "zp-glm53-claude"
+        alias: "zp-cc-glm53"
+      - name: "glm-5.3"
+        alias: "glm-5.3"
       - name: "glm-5.3-flash"
+        alias: "zp-cc-glm53fh"
 
 # responses 面(OpenAI Responses wire 客户端走 /v1/responses):上游智谱开放平台 /api/v1
 # 上游 /api/v1 是 Responses-only 面(2026-10-11 直探:chat/completions 对 glm-5.3 与
@@ -71,14 +81,18 @@ xai-api-key:
     request-retry: 3
     models:
       - name: "glm-5.3"
+        alias: "zp-cx-glm53"
       - name: "glm-5-turbo"
+        alias: "zp-cx-glm5t"
   - api-key: "{{cpa_zhipu_key_2}}"
     base-url: "https://open.bigmodel.cn/api/v1"
     disable-cooling: false
     request-retry: 3
     models:
       - name: "glm-5.3"
+        alias: "zp-cx-glm53"
       - name: "glm-5-turbo"
+        alias: "zp-cx-glm5t"
 
 # 客户端进网关的钥匙,与智谱 key 分开;客户端只见这里发的 key
 access:

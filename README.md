@@ -20,9 +20,9 @@ colima start
 cd ~/overcast && docker compose up -d     # 镜像 eceasy/cli-proxy-api:v8.0.23,钉 tag
 
 # 客户端
-base-url: http://lan-mac:8317             # CC 走 /v1/messages(glm-5.3 / glm-5.3-flash)
-                                          # codex 走 /v1/responses(glm-5.3 / glm-5-turbo)
-                                          # chat 走 /v1/chat/completions,别名 zp-glm53-codex
+base-url: http://lan-mac:8317             # CC 走 /v1/messages(zp-cc-glm53 / zp-cc-glm53fh)
+                                          # codex 走 /v1/responses(zp-cx-glm53 / zp-cx-glm5t)
+                                          # chat 走 /v1/chat/completions,别名 zp-cx-chat
 ```
 
 config.yaml 由金库渲染(占位符模板见 [deploy/config.example.yaml](deploy/config.example.yaml)),智谱 key 与网关访问 key 永不进仓。
