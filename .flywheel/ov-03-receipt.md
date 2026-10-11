@@ -26,12 +26,13 @@
 ## 件 3:接入手册(过)
 
 - 新页 `docs/operations/客户端接入.md`:
-  - Claude:settings.json env 形,ANTHROPIC_BASE_URL=http://192.168.88.169:8317,ANTHROPIC_AUTH_TOKEN 占位(值见密码管理器),DEFAULT 模型对 ANTHROPIC_MODEL=glm-5.3 加 ANTHROPIC_SMALL_FAST_MODEL=glm-5.3-flash
-  - Codex:~/.codex/config.toml `[model_providers.zai]`(base_url=http://192.168.88.169:8317/v1,wire_api="responses",env_key=OVERCAST_GATEWAY_KEY)+ models.json 精简形(model_catalog_json 指向)
+  - Claude:settings.json env 形,ANTHROPIC_BASE_URL=http://192.168.88.10:8317,ANTHROPIC_AUTH_TOKEN 占位(值见密码管理器),DEFAULT 模型对 ANTHROPIC_MODEL=glm-5.3 加 ANTHROPIC_SMALL_FAST_MODEL=glm-5.3-flash
+  - Codex:~/.codex/config.toml `[model_providers.zai]`(base_url=http://192.168.88.10:8317/v1,wire_api="responses",env_key=OVERCAST_GATEWAY_KEY)+ models.json 精简形(model_catalog_json 指向)
   - 附通用 chat 客户端与两发验活 curl
 - 写前背书实测:上游 anthropic 面 glm-5.3-flash 与 glm-5.3 直探均 200;glm-5.3-flash 已注册进部署 config claude 组(两条目),经网关 /v1/messages 实测 glm-5.3-flash 200、别名 zp-glm53-claude 200、真名 glm-5.3 200
 - 部署目录与仓同步:deploy/config.example.yaml 同形更新(xai 组占位符、claude 组补 flash、纪律注);手册 §5 与 README 加接入页链接
-- 注意事项报总台:本仓 raystyle/overcast 为 public,内网地址 192.168.88.169 按派单明示入库;若需改角色名写法,另立单裁定
+- 注意事项报总台:本仓 raystyle/overcast 为 public,内网地址按派单明示入库;若需改角色名写法,另立单裁定
+- 追记(2026-10-11,总台通知):网关地址由 192.168.88.169 变更为 192.168.88.10(本机 en0 现值;新址实测 /v1/models 200,旧址已 000),本页与接入页已同步替换
 - commit 已推远端:payload `1ca8d63` 加本回执笔,push 结果见会话摘要
 
 ## 件 4:驻留注记(过)
