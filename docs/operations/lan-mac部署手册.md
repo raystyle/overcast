@@ -1,4 +1,6 @@
-# lan-mac 部署手册(operations 面)
+# lan-mac 部署手册
+
+operations 面。
 
 - 依据:research-01 部署节 + design-001;执行归**部署批**(单 ov-01 边界:其余工位对 lan-mac 只读)
 - 实况探测(2026-10-11,只读):Apple Silicon arm64,macOS 26.6.2,colima 与 docker 均已装(/opt/homebrew/bin),宿主 8317 空闲。立项单记「Colima 未装」已过时,部署批无需再装运行时(仍需实查 `colima status`)
@@ -46,7 +48,9 @@ docker logs overcast --tail 50
 
 镜像钉 tag(`eceasy/cli-proxy-api:v8.0.23`,arm64 层已有),**不用 latest**。
 
-## 4. 验收清单(REQ-001 能力一判据,逐条实测)
+## 4. 验收清单
+
+REQ-001 能力一判据,逐条实测。
 
 | # | 操作 | 期望 |
 | --- | --- | --- |
@@ -56,7 +60,7 @@ docker logs overcast --tail 50
 | 4 | 拔 lan-mac 网络再恢复 | 容器起来后两把 key 仍在(卷外置);冷却状态丢属可接受(默认内存态) |
 | 5 | 核对同机其他 CPA | 不与本网关同时当同一批 agent 的上游(两套冷却各算各的) |
 
-进度(2026-10-11,单 ov-03):判据 1 与 2 已实测,判据 1 形制修正为 chat 组 `api-key-entries` 两行、claude 组拆两条目(见 §7);判据 2 实测证据:改错第一把 key 后,同一请求 id 日志先 401(`conductor_execution` warn,provider=openai-compatible-glm)后 200,客户端全程 200,还原重启后两发干净 200。2026-10-12 余账推进:表行 2(400 不轮转,单发 `[4feb9f1d]` 零换 key 痕迹)、行 4(断网恢复,docker 断接 3 秒后探针 200)、行 5(同机无第二 CPA,容器与进程双核)实测过;key 隔离核验过(客户端配置零智谱 key 形态,网关 key 各 1)。表行 3(流式掐断)未测,余可控断流手段。
+进度(2026-10-11,单 ov-03):判据 1 与 2 已实测,判据 1 形制修正为 chat 组 `api-key-entries` 两行、claude 组拆两条目(见 §7);判据 2 实测证据:改错第一把 key 后,同一请求 id 日志先 401(`conductor_execution` warn,provider=openai-compatible-glm)后 200,客户端全程 200,还原重启后两发干净 200。2026-10-12 余账推进:表行 2(400 不轮转,单发 `[4feb9f1d]` 零换 key 痕迹)、行 4(断网恢复,docker 断接 3 秒后探针 200)、行 5(同机无第二 CPA,容器与进程双核)实测过;key 隔离核验过(客户端配置零智谱 key 形态,网关 key 各 1)。表行 3(流式掐断)未测,余可控断流手段。2026-10-12 15:35 生产实事件:表行 1 的 429 真实形态落地,第一把撞智谱 5 小时窗限(429 code 1308,限额 17:33:27 重置),请求 `[216049cb]` 同请求换 key,客户端 200(4.872s),后续两发持续 200,冷却按 rate-limit header 解析;两把同窗尽时双冷却、客户端见 429,属容量边界非切换故障。
 
 ## 5. 客户端接法
 
@@ -86,7 +90,7 @@ base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(
 
 - 流式首包后断流不换 key 不重放,agent 侧重开一轮(ADR-0001 继承上游语义)
 - 冷却态默认不落盘(`save-cooldown-status` 默认 false);若后续观测(REQ-001 能力三)显示重启风暴导致冷却抖动,再评估开它,首版不开
-- 智谱失败形态若落在 body(400 文案限流、200 带业务失败),按 design-001 §1.3 升级阶梯先配 `request-scoped-errors`,不改代码
+- 智谱失败形态若落在 body(400 文案限流、200 带业务失败),按 design-001 §1.3 升级阶梯先配 `request-scoped-errors`,不改代码;已见额度尽形态为标准 429(code 1308,5h 窗限带重置时间与 rate-limit headers,2026-10-12 生产实事件同请求换 key 接住,trace `[216049cb]`)
 - **多 key 形制两组不同**(2026-10-11 实测):openai-compatibility 组用 `api-key-entries` 列表;claude-api-key 组必须每把 key 一个条目(`api-key:` 单数),在该组用 `api-key-entries` 会载入 1 个空 key 客户端,上游 401 报「Header中未收到Authorization参数」,日志痕迹 `auth=api_key=`(空值)
 - **`[1m]` 后缀是纯客户端参数,网关别名不带这段**(2026-10-11 对照实测):Claude Code settings 写 `zp-cc-glm53[1m]` / `zp-cc-glm53fh[1m]` 开 1M 上下文,CC 发请求前自己剥后缀,网关收到 `zp-cc-glm53` / `zp-cc-glm53fh`;带 `[1m]` 的名字直打网关会 400 unknown provider
 - **port 必写**:config 缺根级 `port: 8317` 时上游监听 `:0` 随机端口,起服日志可见,外部一律连不上
@@ -94,20 +98,22 @@ base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(
 - **裸名 glm-5.3 路由已验**(2026-10-12):经 /v1/messages 实测 200,响应为 anthropic 原生 id 形(msg_ 前缀,非 xai 面 resp_ 形),确认落 claude 执行器、无跨组抢名;命名 rollout 后该兜底仍有效
 - **anthropic 面无前缀缓存**(2026-10-12 直探):同 key 同 1923-token system 前缀两发(隔 3 秒)与异 key 一发,`cache_read_input_tokens` 均 0;session-affinity 无缓存收益,保持 false。思考不可禁(glm-5.3/flash 强制思考,disabled 报错),降档唯一通道是 effort(见 §8 与接入页提速节)
 
-## 8. 思考块调试注入(能力二 v1,2026-10-11)
+## 8. 思考块调试注入
+
+能力二 v1,2026-10-11。
 
 形态:配置态 `requests.payload.override` / `override-raw`,请求头 `X-Overcast-Debug` 门控,不带头零改动;规则见 config 的 requests 段(仓内模板同形)。
 
 ```bash
-# effort 档调试(responses 面,/v1/responses):
+# effort 档调试,responses 面 /v1/responses:
 curl -H 'X-Overcast-Debug: low'  ... # 低推理档(响应无 reasoning 项,快)
 curl -H 'X-Overcast-Debug: high' ... # 高推理档(带 reasoning 项)
 
-# 净室调试(claude 面,/v1/messages):全换 system 为调试沙盒提示词
+# 净室调试,claude 面 /v1/messages:全换 system 为调试沙盒提示词
 curl -H 'X-Overcast-Debug: cleanroom' ...
 
-# 假 thinking 锚注入(claude 面):messages[1] 放 assistant 占位轮,头带 anchor,
-# 网关把该轮 content 整块换成伪造 thinking 块(智谱不校验 signature)
+# 假 thinking 锚注入,claude 面:messages[1] 放 assistant 占位轮,头带 anchor,
+# 网关把该轮 content 整块换成伪造 thinking 块,智谱不校验 signature
 curl -H 'X-Overcast-Debug: anchor' ...
 ```
 
