@@ -21,3 +21,4 @@ trace: null
 ## 演进与退役
 
 - 2026-10-12 立项登记(用户裁定:项目两能力 = 双 token 轮换 + vector/CH 观测道)
+- 2026-10-12 可行性研究吸收(S005):现 tag 的 `request-log` 一请求一文件且流式同步写盘在热路径,不作验收路径;推荐主线 = 上游小补丁(进程内异步 JSONL,有界队列满只丢观测事件)+ vector file source 尾随 + ClickHouse 头表加块表;判据细化候六项裁定(补丁路线、CH 落机、TTL 天数、正文访问面、auth_id 稳定性核、commercial-mode 与 WRITABLE_PATH 现状),裁定后按 S005 判据建议五条替换本页留位判据
