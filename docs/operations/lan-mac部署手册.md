@@ -91,6 +91,7 @@ base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(
 3. 配置盖不住:走二开条件句(分类函数小提交往上游提,见 [上游选型](../explanation/上游选型.md) 与 ADR-0001)
 4. 流式中断:客户端重开一轮,网关侧无动作(语义继承上游)
 - **秘密轮换**:金库重渲染 config.yaml 落部署目录(0600),再 `docker restart overcast`;key 失效期间冷却表不迁移(内存态,重启清零);改 config 的热通道:file watcher 在盯配置变化,轻改可不重启,大改建议重启收口
+- **安全事件登记**:2026-10-12 网关 access key 明文曾入 lan-mac 本机会话 transcript(模板形状对比脚本脱敏遗漏,未入仓未入 commit);用户裁定 LAN 内低风险,不轮换,本条留档
 - **日志**:`docker logs overcast`;换 key 与冷却在日志有 auth id 痕迹,验收与排障先看这里
 - **升降级回退**:tag 改回上一版 `up -d` 即回(无状态迁移)
 - **停服**:`cd ~/overcast && ./down.sh`(保卷);`colima stop` 连运行时一起停
