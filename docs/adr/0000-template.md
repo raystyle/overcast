@@ -10,7 +10,7 @@ superseded_by:
 tags: []
 ---
 
-# ADR-0000:(主题)
+# ADR-0000:主题
 
 ## Context
 
