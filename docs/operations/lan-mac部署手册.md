@@ -56,7 +56,7 @@ docker logs overcast --tail 50
 | 4 | 拔 lan-mac 网络再恢复 | 容器起来后两把 key 仍在(卷外置);冷却状态丢属可接受(默认内存态) |
 | 5 | 核对同机其他 CPA | 不与本网关同时当同一批 agent 的上游(两套冷却各算各的) |
 
-进度(2026-10-11,单 ov-03):判据 1 与 2 已实测,判据 1 形制修正为 chat 组 `api-key-entries` 两行、claude 组拆两条目(见 §7);判据 2 实测证据:改错第一把 key 后,同一请求 id 日志先 401(`conductor_execution` warn,provider=openai-compatible-glm)后 200,客户端全程 200,还原重启后两发干净 200。判据 3 至 5 未测。
+进度(2026-10-11,单 ov-03):判据 1 与 2 已实测,判据 1 形制修正为 chat 组 `api-key-entries` 两行、claude 组拆两条目(见 §7);判据 2 实测证据:改错第一把 key 后,同一请求 id 日志先 401(`conductor_execution` warn,provider=openai-compatible-glm)后 200,客户端全程 200,还原重启后两发干净 200。2026-10-12 余账推进:表行 2(400 不轮转,单发 `[4feb9f1d]` 零换 key 痕迹)、行 4(断网恢复,docker 断接 3 秒后探针 200)、行 5(同机无第二 CPA,容器与进程双核)实测过;key 隔离核验过(客户端配置零智谱 key 形态,网关 key 各 1)。表行 3(流式掐断)未测,余可控断流手段。
 
 ## 5. 客户端接法
 
