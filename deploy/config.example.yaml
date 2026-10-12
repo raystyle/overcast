@@ -159,6 +159,46 @@ requests:
               X-Overcast-Debug: "cleanroom"
         params:
           system: "你是调试沙盒。回答前先在思考块里:1)用中文复述任务 2)分步编号推理 3)给出结论置信度。然后输出答案。"
+      # flash 低思考档:haiku/后台面提速。zhipu 方言 output_config.effort,
+      # 2026-10-12 直探 anthropic 面实证:low 档 thinking 1568 字符降到 10,出参 828 降到 118
+      - models:
+          - name: "glm-5.3-flash"
+            protocol: claude
+            from-protocol: claude
+            headers:
+              X-Overcast-Debug: "flash-low"
+          - name: "zp-cc-glm53fh"
+            protocol: claude
+            from-protocol: claude
+            headers:
+              X-Overcast-Debug: "flash-low"
+        params:
+          output_config.effort: "low"
+      # 会话级快跑档:一个头把主模型与 flash 面同时降为低思考
+      # (CC 会话 env 设 ANTHROPIC_CUSTOM_HEADERS: "X-Overcast-Debug: fast" 即整档快跑)
+      - models:
+          - name: "glm-5.3"
+            protocol: claude
+            from-protocol: claude
+            headers:
+              X-Overcast-Debug: "fast"
+          - name: "zp-cc-glm53"
+            protocol: claude
+            from-protocol: claude
+            headers:
+              X-Overcast-Debug: "fast"
+          - name: "glm-5.3-flash"
+            protocol: claude
+            from-protocol: claude
+            headers:
+              X-Overcast-Debug: "fast"
+          - name: "zp-cc-glm53fh"
+            protocol: claude
+            from-protocol: claude
+            headers:
+              X-Overcast-Debug: "fast"
+        params:
+          output_config.effort: "low"
     # 假 thinking 锚注入:客户端在 messages[1] 放 assistant 占位轮,网关整块替换为
     # 伪造思考块(智谱 anthropic 面不校验 signature,实测收伪造 thinking)
     override-raw:

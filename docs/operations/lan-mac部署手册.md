@@ -92,6 +92,7 @@ base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(
 - **port 必写**:config 缺根级 `port: 8317` 时上游监听 `:0` 随机端口,起服日志可见,外部一律连不上
 - **responses 面必须走 xai-api-key 组**(2026-10-11 实测):智谱 `/api/v1` 是 Responses-only 面(chat/completions 双模型 403 model_access_denied,responses 双模型 200),openai-compatibility 执行器把 Responses 请求翻译成 chat 发上游必 403;xai-api-key 组走原生 Responses 执行器直通上游 /responses,legacy 形每条目一把 key
 - **裸名 glm-5.3 路由已验**(2026-10-12):经 /v1/messages 实测 200,响应为 anthropic 原生 id 形(msg_ 前缀,非 xai 面 resp_ 形),确认落 claude 执行器、无跨组抢名;命名 rollout 后该兜底仍有效
+- **anthropic 面无前缀缓存**(2026-10-12 直探):同 key 同 1923-token system 前缀两发(隔 3 秒)与异 key 一发,`cache_read_input_tokens` 均 0;session-affinity 无缓存收益,保持 false。思考不可禁(glm-5.3/flash 强制思考,disabled 报错),降档唯一通道是 effort(见 §8 与接入页提速节)
 
 ## 8. 思考块调试注入(能力二 v1,2026-10-11)
 
