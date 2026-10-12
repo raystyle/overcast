@@ -108,6 +108,7 @@ management:
 # 热改:改本段存盘,file watcher 轻改热加载;新根级段属大改,重启收口(实测)
 # 实测(2026-10-11):responses 面 reasoning.effort 上游认(low 无 reasoning 项 / high 带);
 # claude 面 thinking.budget_tokens 上游不认(256 与 4096 思考长度无差),不作旋钮;
+# claude 面 output_config.effort 认(2026-10-12 直探,low 档思考字符约 157 倍削减);
 # system/instructions 为全换语义(净室调试),prepend 合并形留 v2 侧车
 requests:
   payload:
@@ -160,7 +161,7 @@ requests:
         params:
           system: "你是调试沙盒。回答前先在思考块里:1)用中文复述任务 2)分步编号推理 3)给出结论置信度。然后输出答案。"
       # flash 低思考档:haiku/后台面提速。zhipu 方言 output_config.effort,
-      # 2026-10-12 直探 anthropic 面实证:low 档 thinking 1568 字符降到 10,出参 828 降到 118
+      # 2026-10-12 直探 anthropic 面实证:low 档 thinking 字符 1568 降到 10(约 157 倍),出参 828 降到 118 token(约 7 倍)
       - models:
           - name: "glm-5.3-flash"
             protocol: claude

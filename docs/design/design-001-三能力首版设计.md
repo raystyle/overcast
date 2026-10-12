@@ -74,7 +74,7 @@ overcast 不是网关代码仓。总体形态 = 上游 CLIProxyAPI 官方镜像�
 - **协议字段语义**(上游 v8.0.23 官方样例):`protocol` 是目标翻译格式,枚举 openai/gemini/claude/codex/antigravity(xai 执行器即 responses 面用 `codex`);`from-protocol` 是来源格式,枚举 openai/responses/gemini/claude;`name` 未言明匹配客户端名还是别名解析后的上游名,规则里双名字兜底
 - **旋钮**(直探上游实证):
   - responses 面 `reasoning.effort`:**认**(low 155 token 无 reasoning 项 / high 934 token 带,差异显著;2026-10-11)
-  - claude 面 `output_config.effort`(zhipu 方言):**认**(2026-10-12 直探:low 档 thinking 1568 字符降到 10、出参 828 降到 118 token,约 7 倍削减;`thinking.type: disabled` 上游报错,禁写)
+  - claude 面 `output_config.effort`(zhipu 方言):**认**(2026-10-12 直探:low 档 thinking 字符 1568 降到 10(约 157 倍)、出参 828 降到 118 token(约 7 倍);`thinking.type: disabled` 上游报错,禁写)
   - claude 面 `thinking.budget_tokens`:**不认**(256 与 4096 思考长度无差),不作旋钮
   - `system`(claude 面)/`instructions`(responses 面):**全换语义**(净室调试,替换客户端自带 system)
 - **假 thinking 锚注入**(override-raw):客户端在 `messages[1]` 放 assistant 占位轮,网关把该轮 content 整块替换为伪造 thinking 块 + 配套 text 块;智谱 anthropic 面不校验 signature,实测收伪造 thinking。用途:测模型对上轮思考的锚定强度

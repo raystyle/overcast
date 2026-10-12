@@ -10,4 +10,5 @@
 - 2026-10-11 23:55 用户 `!` 执行重启完成:六客户端全载入,flash 存活探针 200,网关回到纯 failover 干净面。延迟画像(近2h 232 请求):>=1s 占 203,>=10s 占 111,证实卡=模型固有延迟非网关故障。附记:CC auto 权限模式的分类器走 zp-cc-glm53[1m] 主模型(思考模型),网关一忙分类器就超时,卡 Bash;ops 重会话建议手动权限模式。glm-5.3-flash 默认也开思考,haiku 面不快。仓内能力二相关改动(template/design/REQ/手册/state)仍未 commit,待稳
 - 2026-10-12 01 时段:cfg-01 配置体检(评审 F1/G2,修复 commit 41b1f62,评审方快核 CONFIRM,单闭);git 身份清洗(noreply 形全史重写);秘密双审计零命中
 - 2026-10-12 08 时段(余账推进轮 2,总台令):REQ-001 能力一四判据实测勾验(400 不轮转 [4feb9f1d] 零换 key 痕迹;key 隔离客户端配置零智谱 key 形态;断网恢复 docker 断接 3 秒探针 200;同机 CPA 容器进程双核无第二实例),余流式掐断一项待可控断流手段;手册 §4 与 REQ 回写,本笔 commit
+- 2026-10-12 09 时段(ov-04 收束):grok 研究笺 CONFIRM(G1/G2 修毕);effort 直探 7/157 倍实证;四门对照实测过(REQ 能力二 +3 勾,含 anchor 强锚);总台三裁(acceptEdits / 1m 全局保留 / requests 维持暂撤)落地,部署面复撤重启;客户端侧 codex effort high、turbo 档位补齐、CC env 增 NONSTREAMING_FALLBACK
 - 秘密纪律提醒(自警):ov-03 全程智谱 key 与网关 access key 不进 argv 回显、不进 transcript、不进仓

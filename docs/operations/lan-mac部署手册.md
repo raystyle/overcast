@@ -112,7 +112,8 @@ curl -H 'X-Overcast-Debug: anchor' ...
 ```
 
 - **门控嵌套坑**(2026-10-11 源码比对实证):`headers`/`from-protocol` 等门控字段必须嵌在每个 models 条目内(与 name/protocol 同级);写在规则层会被静默丢弃,规则变成无门控裸规则,首版部署曾中坑已修
-- 旋钮边界(直探上游实证):responses 面 `reasoning.effort` 认;claude 面 `thinking.budget_tokens` 不认(不作旋钮);`system`/`instructions` 全换语义,prepend 合并留 v2 侧车
+- 旋钮边界(直探上游实证):responses 面 `reasoning.effort` 认;claude 面 `output_config.effort` 认(zhipu 方言,2026-10-12 直探:low 档思考字符约 157 倍、出参约 7 倍削减;`thinking.type: disabled` 报错禁写);claude 面 `thinking.budget_tokens` 不认(不作旋钮);`system`/`instructions` 全换语义,prepend 合并留 v2 侧车
+- 部署态:requests 段暂撤(2026-10-12 总台裁定维持;当日 09:10 临时载入完成四门对照实测后随即复撤,实测证据有效,入 REQ-001)
 - 热改:改 requests.payload 段 params 值存盘即热加载(轻改);新增规则或新根级段重启收口
 - 热改脚本:`sh ~/overcast/inject.sh '<新 system 文本>'` 直改 cleanroom 规则的 system 行
 - CC 加头法:settings.json env `ANTHROPIC_CUSTOM_HEADERS`(逗号分隔多对);curl/codex 直接加
