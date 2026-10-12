@@ -1,6 +1,7 @@
 # design-001:三能力首版设计
 
 - 时点:2026-10-11;状态:failover 节实写定稿候选;注入与 CH 两节留位
+- 2026-10-12 用户裁定:注入节作废剔除(证据归档 REQ-001 演进);CH 观测改道 REQ-002(vector 采集原始请求日志入库)承接;现 scope = 双 token 轮换 + vector/CH 观测道两能力
 - 依据:research-01(总台在途,`/tmp/herdr-flywheel/2026-10-11-智谱网关调研/research-01.md`)已落「网关五件」节;注入三件与 CH 四件在写,落节后回填本档并随总台评审修订
 - 关联:ADR-0001(上游选型裁定)、REQ-001(验收判据)、`deploy/`(配置与 compose)、`docs/operations/lan-mac部署手册.md`
 
@@ -18,9 +19,9 @@ overcast 不是网关代码仓。总体形态 = 上游 CLIProxyAPI 官方镜像�
 
 **二开条件句**(唯一允许动代码的路径):智谱把余额不足/限流放在 HTTP 400、HTTP 200 body、或 `request-scoped-errors` 匹配不到的形态时,先配 `request-scoped-errors` 四档动作(stop/stop-and-cooldown/continue/continue-and-cooldown)按 body 子串分类;配置盖不住再补一个很小的分类函数(`IsRequestFault` 与 `matchRequestScopedErrorAction` 是现成钩子),让 conductor 现有循环换 key。**不在 HTTP 层再包重试**(会与 `request-retry` 叠成双倍请求),不动 round-robin 与冷却状态机。
 
-## 1. 能力一:failover 双 token(实写)
+## 1. 能力一:failover 双 token 实写
 
-### 1.1 机制(上游既有,不新造)
+### 1.1 机制,上游既有不新造
 
 - 换 key 循环:`executeMixedOnce` 在一个请求内循环 `pickNextMixed`;当前 key 失败后,只要不是请求本身的错误(判定在 `internal/clienterror/client_error.go` 的 `IsRequestFault`),就选下一把
 - 选择器:`RoundRobinSelector` 在未冷却 key 间轮转(FillFirst 与加权是备选策略);冷却中的 key 在 `isAuthBlockedForModel` 被跳过
@@ -38,7 +39,7 @@ overcast 不是网关代码仓。总体形态 = 上游 CLIProxyAPI 官方镜像�
 - 流式语义:首包之前失败,模型池与下一把 key 都能接(`executeStreamWithModelPool` 读 bootstrap);首包已转给客户端后,`wrapStreamResult` 只把错误转发客户端,**不换 key 不重放**。断流由 agent 重开一轮(中途接半段 SSE 上下文对不齐且双计费,不做)
 - 冷却态默认只在内存,容器重启清零(`save-cooldown-status` 默认 false),对双 key 场景可接受
 
-### 1.2 配置形(两组、双 entries、冷却开)
+### 1.2 配置形,两组双 entries 冷却开
 
 形态与占位符见 `deploy/config.example.yaml`,要点:
 
@@ -51,7 +52,7 @@ overcast 不是网关代码仓。总体形态 = 上游 CLIProxyAPI 官方镜像�
 
 字段名以部署批渲染前对照上游 `config.example.yaml` 为准(research-01 引的是上游 main 分支形制,未逐字段核验)。
 
-### 1.3 升级阶梯(问题出现时的处置序)
+### 1.3 升级阶梯,问题出现时的处置序
 
 1. 换 key 不生效:先查冷却与配置(两组 `disable-cooling: false` 是否真渲染进去)
 2. 智谱错误形态在 body(如 HTTP 200 带业务失败、400 带限流文案):配 `request-scoped-errors` 按 body 子串改 `continue-and-cooldown`
@@ -62,11 +63,11 @@ overcast 不是网关代码仓。总体形态 = 上游 CLIProxyAPI 官方镜像�
 
 判据在 REQ-001 能力一(401 换 key、400 不换、流式掐断、key 分离、断网恢复、同机无双上游),由部署批在 lan-mac 实测执行。
 
-## 2. 能力二:system prompt 实时注入(v1 配置态实写,2026-10-11)
+## 2. 能力二:system prompt 实时注入 v1,2026-10-11 配置态实写
 
 > v1 落地形态由单 ov-03 追加任务定:用户主诉求是**调试思考块**。v1 走配置态(requests.payload override),零代码零侧车,符合 ADR-0001 配置态优先裁定;prepend 合并形留 v2。
 
-### 2.1 v1 形态(直探上游实证,网关门控待验)
+### 2.1 v1 形态,直探上游实证网关门控待验
 
 - **通道**:`requests.payload.override` / `override-raw` 规则,上游 CPA 原生能力;gjson/sjson 路径直改请求体
 - **门控**:请求头 `X-Overcast-Debug` 匹配才改体,正常流量零改动(不带头=完全 passthrough)
@@ -81,13 +82,13 @@ overcast 不是网关代码仓。总体形态 = 上游 CLIProxyAPI 官方镜像�
 - **热改通道**:改 config.yaml 存盘,file watcher 轻改热加载;追加新根级段属大改,重启收口(实测 requests 段追加未见热加载日志,重启生效)
 - **用法**:`curl -H 'X-Overcast-Debug: low'` 打网关 responses 面即得低推理档;`cleanroom` 头换调试沙盒 system;`anchor` 头触发假 thinking 锚注入
 
-### 2.2 开放问题(v2 面)
+### 2.2 开放问题,v2 面
 
 - [ ] prepend/append 合并语义:payload override 只有全换,合并非破坏注入需侧车或上游小补丁(qiontoo/cliproxyapi-system-prompt-injection 参考,license 待核)
 - [ ] 与能力一叠加:注入后的请求触发换 key 重试时注入随同体重放保留(应天然成立,强测确认后勾)
 - [ ] 与能力三叠加:注入内容入 CH 回溯(审计面回放当轮生效 prompt)
 
-## 3. 能力三:ClickHouse 全量回溯观测(留位)
+## 3. 能力三:ClickHouse 全量回溯观测留位
 
 > **留位**:本节待 research-01「CH 四件」落节后回填设计;以下只固化立项单给的形态约束与开放问题。
 
