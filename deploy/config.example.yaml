@@ -68,6 +68,18 @@ claude-api-key:
         alias: "glm-5.3"
       - name: "glm-5.3-flash"
         alias: "zp-cc-glm53fh"
+  # zyuncs 备供应商条目(2026-10-12 grok 新增):base 不带 /v1;flash 以 z-ai/glm-5.3-flash 形挂
+  - name: zyuncs-claude
+    base-url: "https://llm.api.zyuncs.com"
+    disable-cooling: false
+    api-key: "{{cpa_zyuncs_key}}"
+    models:
+      - name: "z-ai/glm-5.3"
+        alias: "zp-cc-glm53"
+      - name: "z-ai/glm-5.3"
+        alias: "glm-5.3"
+      - name: "z-ai/glm-5.3-flash"
+        alias: "zp-cc-glm53fh"
 
 # responses 面(OpenAI Responses wire 客户端走 /v1/responses):上游智谱开放平台 /api/v1
 # 上游 /api/v1 是 Responses-only 面(2026-10-11 直探:chat/completions 对 glm-5.3 与
@@ -93,6 +105,15 @@ xai-api-key:
         alias: "zp-cx-glm53"
       - name: "glm-5-turbo"
         alias: "zp-cx-glm5t"
+  # zyuncs 备供应商条目(2026-10-12 grok 新增,同池轮换:智谱自费 key 额度尽时接力)
+  # 模型名形 z-ai/glm-5.3(zyuncs 形);responses 面单条目,无 glm5t 别名
+  - api-key: "{{cpa_zyuncs_key}}"
+    base-url: "https://llm.api.zyuncs.com/v1"
+    disable-cooling: false
+    request-retry: 3
+    models:
+      - name: "z-ai/glm-5.3"
+        alias: "zp-cx-glm53"
 
 # 客户端进网关的钥匙,与智谱 key 分开;客户端只见这里发的 key
 access:
