@@ -125,3 +125,9 @@ management:
   allow-remote: false
 
 # requests 段(思考块调试注入,原能力二 v1)已剔除:2026-10-12 用户裁定 scope 收敛为双 token 轮换 + vector/CH 观测道(REQ-002);历史形制见 git 史 7bfb2c8 模板档
+
+# 对话观测道(REQ-002,补丁 v8.0.23-dialog1):异步 JSONL 小时轮换(学 Suricata 形),
+# 全量请求体/响应字节/凭据轮换事件落 dialoglogs 卷,队列满只丢观测事件不挡请求;
+# 盘容有界:dialog-log-max-total-size-mb 大于 0 时按分钟删最旧(活跃文件不动)
+# dialog-log: true
+# dialog-log-max-total-size-mb: 512

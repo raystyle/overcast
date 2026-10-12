@@ -90,6 +90,10 @@ base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(
 2. 智谱错误形态在 body(如 HTTP 200 带业务失败、400 带限流文案):配 `request-scoped-errors` 按 body 子串改 `continue-and-cooldown`
 3. 配置盖不住:走二开条件句(分类函数小提交往上游提,见 [上游选型](../explanation/上游选型.md) 与 ADR-0001)
 4. 流式中断:客户端重开一轮,网关侧无动作(语义继承上游)
+
+### 对话观测道,REQ-002 补丁态
+
+镜像 `cli-proxy-api:v8.0.23-dialog1`(本地构建自 `~/repos/CLIProxyAPI` 分支 `feat/dialog-observation`,commit `4e464508`;上游合并后回官方 tag)。配置键 `dialog-log: true` 加 `dialog-log-max-total-size-mb: 512`,JSONL 落 `dialoglogs/` 卷(小时文件 `dialog-YYYYMMDD-HH.jsonl`,一行一事件,四类:client_request / sse / upstream_attempt / request_end;大请求体分块,单行不超 64KiB;完整 UUIDv7 的 request_id 可对 stdout 末 8 位)。2026-10-12 20:47 上线实测:10 请求全量落流,729KB 请求体分块重组回放合法,135 SSE 事件带 message_stop,延迟分布与补丁前同区间(7 至 34 秒),热路径零损;队列满丢事件有单测。
 - **秘密轮换**:金库重渲染 config.yaml 落部署目录(0600),再 `docker restart overcast`;key 失效期间冷却表不迁移(内存态,重启清零);改 config 的热通道:file watcher 在盯配置变化,轻改可不重启,大改建议重启收口
 - **安全事件登记**:2026-10-12 网关 access key 明文曾入 lan-mac 本机会话 transcript(模板形状对比脚本脱敏遗漏,未入仓未入 commit);用户裁定 LAN 内低风险,不轮换,本条留档
 - **日志**:`docker logs overcast`;换 key 与冷却在日志有 auth id 痕迹,验收与排障先看这里
