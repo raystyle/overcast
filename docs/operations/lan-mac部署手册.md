@@ -1,6 +1,8 @@
 # lan-mac 部署手册
 
-operations 面。
+> 类型: how-to
+> 读者: 部署者
+> 事实源: deploy/config.example.yaml
 
 - 依据:research-01 部署节 + design-001;执行归**部署批**(单 ov-01 边界:其余工位对 lan-mac 只读)
 - 实况探测(2026-10-11,只读):Apple Silicon arm64,macOS 26.6.2,colima 与 docker 均已装(/opt/homebrew/bin),宿主 8317 空闲。立项单记「Colima 未装」已过时,部署批无需再装运行时(仍需实查 `colima status`)
@@ -88,16 +90,7 @@ base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(
 
 ## 7. 已知边界
 
-- 流式首包后断流不换 key 不重放,agent 侧重开一轮(ADR-0001 继承上游语义)
-- 冷却态默认不落盘(`save-cooldown-status` 默认 false);若后续观测(REQ-001 能力三)显示重启风暴导致冷却抖动,再评估开它,首版不开
-- 智谱失败形态若落在 body(400 文案限流、200 带业务失败),按 design-001 §1.3 升级阶梯先配 `request-scoped-errors`,不改代码;已见额度尽形态为标准 429(code 1308,5h 窗限带重置时间与 rate-limit headers,2026-10-12 生产实事件同请求换 key 接住,trace `[216049cb]`)
-- **多 key 形制两组不同**(2026-10-11 实测):openai-compatibility 组用 `api-key-entries` 列表;claude-api-key 组必须每把 key 一个条目(`api-key:` 单数),在该组用 `api-key-entries` 会载入 1 个空 key 客户端,上游 401 报「Header中未收到Authorization参数」,日志痕迹 `auth=api_key=`(空值)
-- **`[1m]` 后缀是纯客户端参数,网关别名不带这段**(2026-10-11 对照实测):Claude Code settings 写 `zp-cc-glm53[1m]` / `zp-cc-glm53fh[1m]` 开 1M 上下文,CC 发请求前自己剥后缀,网关收到 `zp-cc-glm53` / `zp-cc-glm53fh`;带 `[1m]` 的名字直打网关会 400 unknown provider
-- **port 必写**:config 缺根级 `port: 8317` 时上游监听 `:0` 随机端口,起服日志可见,外部一律连不上
-- **responses 面必须走 xai-api-key 组**(2026-10-11 实测):智谱 `/api/v1` 是 Responses-only 面(chat/completions 双模型 403 model_access_denied,responses 双模型 200),openai-compatibility 执行器把 Responses 请求翻译成 chat 发上游必 403;xai-api-key 组走原生 Responses 执行器直通上游 /responses,legacy 形每条目一把 key
-- **裸名 glm-5.3 路由已验**(2026-10-12):经 /v1/messages 实测 200,响应为 anthropic 原生 id 形(msg_ 前缀,非 xai 面 resp_ 形),确认落 claude 执行器、无跨组抢名;命名 rollout 后该兜底仍有效
-- **anthropic 面无前缀缓存**(2026-10-12 直探):同 key 同 1923-token system 前缀两发(隔 3 秒)与异 key 一发,`cache_read_input_tokens` 均 0;session-affinity 无缓存收益,保持 false。思考不可禁(glm-5.3/flash 强制思考,disabled 报错);effort 方言直探事实见接入页提速节
-- 外部无 key 探 `GET /v1/models` 得 401 属预期(鉴权墙在);带网关 key 的 200 实测在 lan-mac 本机做(key 不出机)
+边界、冷却与换 key 行为的事实表统一在 [网关行为参考](../reference/网关行为参考.md) 维护,本节不重复第二份;客户端可见的别名与端口速查在 [客户端速查](../reference/客户端速查.md)。
 
 ## 8. 已剔除能力:思考块调试注入
 

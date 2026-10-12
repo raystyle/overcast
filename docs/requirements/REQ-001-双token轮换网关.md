@@ -34,3 +34,4 @@ trace: null
 - 2026-10-12 余账推进轮 2(总台令):400 不轮转、key 隔离、断网恢复、同机 CPA 四项实测勾验;余流式掐断一项,待可控断流手段
 - 2026-10-12 生产实事件归档:429 额度尽(智谱 5h 窗限 code 1308)同请求换 key 勾验,trace `[216049cb]`;智谱额度尽形态确认为标准 429 面,design-001 §1.3 怪形态风险对窗限形排除
 - 2026-10-12 用户裁定 scope 收敛:剔除 prompt 注入热改(原能力二 v1,payload 配置态、X-Overcast-Debug 头门控),已实测三判据证据随本条归档(git 史 9dd25ae/2166adb/7bfb2c8);CH 回溯观测(原能力三留位)改道 REQ-002 承接;模板 requests 段、手册 §8、接入页注入通道同步剔除
+- 2026-10-12 供应池扩至三上游:grok 增 zyuncs 备供应商(llm.api.zyuncs.com,xai 与 claude 两组各一条目,模型名 z-ai/glm-5.3 形);17:16 载入 8 clients;同窗双智谱 key 相继 429(1308,重置 17:33/18:55)期间 zyuncs 接力,四笔双 429 请求(`a19fb3b2`/`0ffe62b1`/`6accbe40`/`f8cb6fd2`)客户端面全 200,messages 与 responses 双面验证;模板同步回填(SHAPE_MATCH,commit f08bc90)
