@@ -4,7 +4,7 @@
 > 读者: 部署者
 > 事实源: deploy/config.example.yaml
 
-- 依据:research-01 部署节 + design-001;执行归**部署批**(单 ov-01 边界:其余工位对 lan-mac 只读)
+- 依据:research-01 部署节 + [上游选型](../explanation/上游选型.md);执行归**部署批**(单 ov-01 边界:其余工位对 lan-mac 只读)
 - 实况探测(2026-10-11,只读):Apple Silicon arm64,macOS 26.6.2,colima 与 docker 均已装(/opt/homebrew/bin),宿主 8317 空闲。立项单记「Colima 未装」已过时,部署批无需再装运行时(仍需实查 `colima status`)
 
 ## 1. 前提核对
@@ -83,6 +83,13 @@ base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(
 ## 6. 运维
 
 - **升级**:改 up.sh 里 tag 跟 v8 补丁号(上游几乎按天发版),`./down.sh && ./up.sh` 重建;config 与 auths 卷外置不动(compose 插件可用时同义改 deploy/docker-compose.yml)
+
+### 升级阶梯,问题出现时的处置序
+
+1. 换 key 不生效:先查冷却与配置(各组 `disable-cooling: false` 是否真渲染进去)
+2. 智谱错误形态在 body(如 HTTP 200 带业务失败、400 带限流文案):配 `request-scoped-errors` 按 body 子串改 `continue-and-cooldown`
+3. 配置盖不住:走二开条件句(分类函数小提交往上游提,见 [上游选型](../explanation/上游选型.md) 与 ADR-0001)
+4. 流式中断:客户端重开一轮,网关侧无动作(语义继承上游)
 - **秘密轮换**:金库重渲染 config.yaml 落部署目录(0600),再 `docker restart overcast`;key 失效期间冷却表不迁移(内存态,重启清零);改 config 的热通道:file watcher 在盯配置变化,轻改可不重启,大改建议重启收口
 - **日志**:`docker logs overcast`;换 key 与冷却在日志有 auth id 痕迹,验收与排障先看这里
 - **升降级回退**:tag 改回上一版 `up -d` 即回(无状态迁移)
