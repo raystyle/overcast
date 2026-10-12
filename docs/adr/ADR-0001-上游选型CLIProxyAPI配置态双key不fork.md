@@ -1,7 +1,7 @@
 ---
 id: ADR-0001
 title: 上游选型CLIProxyAPI配置态双key不fork
-status: proposed
+status: accepted
 date: 2026-10-11
 deciders:
   - raystyle
@@ -9,6 +9,8 @@ supersedes: []
 superseded_by:
 tags: ['定位', '上游', 'failover']
 ---
+
+> **2026-10-12 用户裁定(维护模式变更)**:本 ADR 的「不 fork、补丁往上游提」条款作废,项目转入**二开自维护**:本地分叉 `~/repos/CLIProxyAPI`(基线 `feat/dialog-observation`,即 dialog 观测道补丁)长期自维护,不再往上游提 PR;上游 tag 仅作升级合并参考。选型主干(CLIProxyAPI + 配置态双 key)不变,`不 fork` 主干由本条取代。镜像形:`cli-proxy-api:v<上游tag>-oc<N>` 本地构建。
 
 # ADR-0001:上游选型 CLIProxyAPI 配置态双 key,不 fork
 

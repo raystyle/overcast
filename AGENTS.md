@@ -6,7 +6,7 @@ overcast:lan-mac 上智谱双 token failover + vector 采集请求日志入 Clic
 
 ## 三边界,立项单 ov-01 固化
 
-1. 上游 router-for-me/CLIProxyAPI 仓只读;补丁走小提交往上游提,不留分叉分支
+1. 上游 router-for-me/CLIProxyAPI:本地分叉 `~/repos/CLIProxyAPI` 二开自维护(2026-10-12 用户裁定,基线 feat/dialog-observation),不往上游提 PR;上游 tag 仅作升级合并参考。网关代码改动落分叉仓,本仓仍是配置与文档资产面
 2. lan-mac 只读探测;部署执行归部署批,不代跑
 3. 发布面不动
 
