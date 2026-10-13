@@ -17,7 +17,7 @@ base-url: http://192.168.88.10:8317      # CC 走 /v1/messages,codex 走 /v1/res
 ## 下一步
 
 - 部署:[lan-mac 部署手册](docs/operations/lan-mac部署手册.md)(how-to,含验收清单)
-- 接入:[客户端接入](docs/operations/客户端接入.md)(how-to)+ [客户端速查](docs/reference/客户端速查.md)
+- 接入:[客户端接入](docs/operations/客户端接入.md)(how-to)+ [客户端速查](docs/reference/客户端速查.md);tailnet 新机快速上手见 [tailnet四模型使用指南](docs/operations/tailnet四模型使用指南.md)(自包含,可单独转发)
 - 查行为:[网关行为参考](docs/reference/网关行为参考.md)(状态码、换 key、冷却、已知边界)
 - 判据与进度:[REQ-001 双 token 轮换](docs/requirements/REQ-001-双token轮换网关.md)、[REQ-002 观测道](docs/requirements/REQ-002-vector采集请求日志入ClickHouse.md)、[REQ-003 DeepSeek 双面接入](docs/requirements/REQ-003-DeepSeek官方供应商双面接入.md)
 - 选型为什么:[上游选型](docs/explanation/上游选型.md)、[ADR-0001](docs/adr/ADR-0001-上游选型CLIProxyAPI配置态双key不fork.md)
