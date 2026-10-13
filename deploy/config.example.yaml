@@ -43,6 +43,20 @@ openai-compatibility:
     models:
       - name: "glm-5.3"
         alias: "zp-cx-chat"
+  # DeepSeek 官方(REQ-003,2026-10-13):OpenAI 面;codex 的 responses 请求经本组执行器
+  # 翻译成 chat 发上游(上游 chat-only,与智谱 /api/v1 Responses-only 相反,翻译在该上游是正道);
+  # flash 用新名 deepseek-flash(旧名 deepseek-v4-flash / deepseek-v4 已弃用,官方文档口径)
+  - name: deepseek
+    base-url: "https://api.deepseek.com"
+    disable-cooling: false
+    request-retry: 3
+    api-key-entries:
+      - api-key: "{{cpa_deepseek_key}}"
+    models:
+      - name: "deepseek-v4-pro"
+        alias: "ds-cx-pro"
+      - name: "deepseek-flash"
+        alias: "ds-cx-flash"
 
 # messages 面(Claude Code 走这组):chat 池与 messages 池互不代替
 claude-api-key:
@@ -80,6 +94,16 @@ claude-api-key:
         alias: "glm-5.3"
       - name: "z-ai/glm-5.3-flash"
         alias: "zp-cc-glm53fh"
+  # DeepSeek 官方(REQ-003,2026-10-13):Anthropic 兼容面,CC 走 messages;pro+flash 双模型
+  - name: deepseek-claude
+    base-url: "https://api.deepseek.com/anthropic"
+    disable-cooling: false
+    api-key: "{{cpa_deepseek_key}}"
+    models:
+      - name: "deepseek-v4-pro"
+        alias: "ds-cc-pro"
+      - name: "deepseek-flash"
+        alias: "ds-cc-flash"
 
 # responses 面(OpenAI Responses wire 客户端走 /v1/responses):上游智谱开放平台 /api/v1
 # 上游 /api/v1 是 Responses-only 面(2026-10-11 直探:chat/completions 对 glm-5.3 与

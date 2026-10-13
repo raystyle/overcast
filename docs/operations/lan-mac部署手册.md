@@ -71,8 +71,8 @@ REQ-001 判据,逐条实测。
 ```text
 base-url:  http://192.168.88.10:8317
 Claude Code 走 /v1/messages;codex 走 /v1/responses;chat 走 /v1/chat/completions
-messages 面(Claude Code):zp-cc-glm53、zp-cc-glm53fh,另保留裸名 glm-5.3(旧会话剥掉 [1m] 后仍发这个)
-responses 面(Codex):zp-cx-glm53、zp-cx-glm5t;chat 面:zp-cx-chat
+messages 面(Claude Code):zp-cc-glm53、zp-cc-glm53fh,另保留裸名 glm-5.3(旧会话剥掉 [1m] 后仍发这个);DeepSeek:ds-cc-pro、ds-cc-flash
+responses 面(Codex):zp-cx-glm53、zp-cx-glm5t;chat 面:zp-cx-chat;DeepSeek:ds-cx-pro、ds-cx-flash(responses 经翻译,chat 直通)
 key:现态鉴权关,任意非空串即可;开态用网关发的 access key(不是智谱 key),开关见 §2 渲染纪律
 ```
 
