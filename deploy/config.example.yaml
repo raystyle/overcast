@@ -116,6 +116,9 @@ xai-api-key:
         alias: "zp-cx-glm53"
 
 # 客户端进网关的钥匙,与智谱 key 分开;客户端只见这里发的 key
+# 鉴权开关 deploy/auth-toggle.sh on|off|status:off 把条目全注释(零条目=零 provider 放行,
+# 任意 token 与无 Authorization 头均可,语义源分叉仓 sdk/access/manager.go),on 还原并重启自检。
+# 现态 off(2026-10-13 用户裁定,内网免鉴权);模板保持渲染态形制,开关只动部署位实例。
 access:
   api-keys:
     - "{{overcast_gateway_key}}"

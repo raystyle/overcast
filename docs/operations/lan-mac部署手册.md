@@ -28,7 +28,7 @@ lan-mac 部署目录建议 `~/overcast/`(部署批定,三件同目录):
   config.yaml.bak-*     # 部署批修正留档(port 修正、claude 组改形)
 ```
 
-渲染纪律:两把智谱 key 必须同种产品;渲染完 `stat -f %Lp config.yaml` 核 0600;`access.api-keys` 发给客户端的网关 key 与智谱 key 分离管理。
+渲染纪律:两把智谱 key 必须同种产品;渲染完 `stat -f %Lp config.yaml` 核 0600;`access.api-keys` 发给客户端的网关 key 与智谱 key 分离管理。鉴权开关 `deploy/auth-toggle.sh on|off|status`:off 把 access.api-keys 条目全注释(零条目=零 provider 放行,任意 token 与无头均可)、on 还原,均重启容器并以 401/200 探活自检;现态 off(2026-10-13 用户裁定,内网免鉴权)。
 
 **驻留注记(真源关系)**:仓内 `deploy/` 与 `docs/` 是形制真源,部署目录 `~/overcast` 的运行态(config.yaml 金库渲染实例、auths/ 凭据卷、bak-* 留档、容器本身)只是它的部署投影;形制变更先进仓、再渲染进部署目录,部署目录里的手改不回写仓即视为漂移。
 
@@ -73,7 +73,7 @@ base-url:  http://192.168.88.10:8317
 Claude Code 走 /v1/messages;codex 走 /v1/responses;chat 走 /v1/chat/completions
 messages 面(Claude Code):zp-cc-glm53、zp-cc-glm53fh,另保留裸名 glm-5.3(旧会话剥掉 [1m] 后仍发这个)
 responses 面(Codex):zp-cx-glm53、zp-cx-glm5t;chat 面:zp-cx-chat
-key:网关发的 access key,不是智谱 key
+key:现态鉴权关,任意非空串即可;开态用网关发的 access key(不是智谱 key),开关见 §2 渲染纪律
 ```
 
 base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(本网客户端实测路径)。主机名形 `http://lan-mac:8317` 经 ts 域解析到同机另一网口(10.10.10.9),docker 全接口监听,实测等效可用;前提是客户端具备该域解析,不具备则一律用 IP 形。
@@ -96,6 +96,7 @@ base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(
 镜像 `cli-proxy-api:v8.0.23-dialog1`(本地构建自 `~/repos/CLIProxyAPI` 分支 `feat/dialog-observation`,commit `4e464508`;二开长期自维护,2026-10-12 用户裁定,不往上游提 PR)。配置键 `dialog-log: true` 加 `dialog-log-max-total-size-mb: 512`,JSONL 落 `dialoglogs/` 卷(小时文件 `dialog-YYYYMMDD-HH.jsonl`,一行一事件,四类:client_request / sse / upstream_attempt / request_end;大请求体分块,单行不超 64KiB;完整 UUIDv7 的 request_id 可对 stdout 末 8 位)。2026-10-12 20:47 上线实测:10 请求全量落流,729KB 请求体分块重组回放合法,135 SSE 事件带 message_stop,延迟分布与补丁前同区间(7 至 34 秒),热路径零损;队列满丢事件有单测。
 - **秘密轮换**:金库重渲染 config.yaml 落部署目录(0600),再 `docker restart overcast`;key 失效期间冷却表不迁移(内存态,重启清零);改 config 的热通道:file watcher 在盯配置变化,轻改可不重启,大改建议重启收口
 - **安全事件登记**:2026-10-12 网关 access key 明文曾入 lan-mac 本机会话 transcript(模板形状对比脚本脱敏遗漏,未入仓未入 commit);用户裁定 LAN 内低风险,不轮换,本条留档
+- **鉴权开关与 2026-10-13 事故**:用户裁定内网免鉴权并开关化(`deploy/auth-toggle.sh`,off=api-keys 零条目放行)。首版脚本 awk 还原时剥掉行缩进,config 形坏致容器 crash-loop 数分钟(本机客户端全体 Connection lost/ECONNREFUSED 即此),`config.yaml.bak-20261013-authoff` 备份恢复后修 bug;现行版实切前离线对拍全绿(off/on 往返字节一致、off 幂等、开态 on 无操作不变)
 - **日志**:`docker logs overcast`;换 key 与冷却在日志有 auth id 痕迹,验收与排障先看这里
 - **升降级回退**:tag 改回上一版 `up -d` 即回(无状态迁移)
 - **停服**:`cd ~/overcast && ./down.sh`(保卷);`colima stop` 连运行时一起停
