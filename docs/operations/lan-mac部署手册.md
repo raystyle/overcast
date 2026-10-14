@@ -72,7 +72,7 @@ REQ-001 判据,逐条实测。
 base-url:  http://192.168.88.10:8317
 Claude Code 走 /v1/messages;codex 走 /v1/responses;chat 走 /v1/chat/completions
 messages 面(Claude Code):zp-cc-glm53、zp-cc-glm53fh,另保留裸名 glm-5.3(旧会话剥掉 [1m] 后仍发这个);DeepSeek:ds-cc-pro、ds-cc-flash
-responses 面(Codex):zp-cx-glm53、zp-cx-glm5t;chat 面:zp-cx-chat;DeepSeek:ds-cx-pro、ds-cx-flash(responses 经翻译,chat 直通)
+responses 面(Codex):zp-cx-glm53、zp-cx-glm53fh、zp-cx-glm5t;chat 面:zp-cx-chat;DeepSeek:ds-cx-pro、ds-cx-flash(responses 经翻译,chat 直通)
 key:现态鉴权关,任意非空串即可;开态用网关发的 access key(不是智谱 key),开关见 §2 渲染纪律
 ```
 
@@ -93,7 +93,7 @@ base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(
 
 ### 对话观测道,REQ-002 补丁态
 
-镜像 `cli-proxy-api:v8.0.23-dialog1`(本地构建自 `~/repos/CLIProxyAPI` 分支 `feat/dialog-observation`,commit `4e464508`;二开长期自维护,2026-10-12 用户裁定,不往上游提 PR)。配置键 `dialog-log: true` 加 `dialog-log-max-total-size-mb: 512`,JSONL 落 `dialoglogs/` 卷(小时文件 `dialog-YYYYMMDD-HH.jsonl`,一行一事件,四类:client_request / sse / upstream_attempt / request_end;大请求体分块,单行不超 64KiB;完整 UUIDv7 的 request_id 可对 stdout 末 8 位)。2026-10-12 20:47 上线实测:10 请求全量落流,729KB 请求体分块重组回放合法,135 SSE 事件带 message_stop,延迟分布与补丁前同区间(7 至 34 秒),热路径零损;队列满丢事件有单测。
+镜像 `cli-proxy-api:v8.0.23-dialog2`(本地构建自 `~/repos/CLIProxyAPI` 分支 `feat/dialog-observation`,commit `11e5a58a`;二开长期自维护,2026-10-12 用户裁定,不往上游提 PR;2026-10-14 dialog2 起 AI 路径响应头回写 `X-Request-Id`,与 stdout 末 8 位及 dialog JSONL 同一 UUIDv7,无值才补写不覆盖上游转发值,客户端凭此串联)。配置键 `dialog-log: true` 加 `dialog-log-max-total-size-mb: 512`,JSONL 落 `dialoglogs/` 卷(小时文件 `dialog-YYYYMMDD-HH.jsonl`,一行一事件,四类:client_request / sse / upstream_attempt / request_end;大请求体分块,单行不超 64KiB;完整 UUIDv7 的 request_id 可对 stdout 末 8 位)。2026-10-12 20:47 上线实测:10 请求全量落流,729KB 请求体分块重组回放合法,135 SSE 事件带 message_stop,延迟分布与补丁前同区间(7 至 34 秒),热路径零损;队列满丢事件有单测。
 - **秘密轮换**:金库重渲染 config.yaml 落部署目录(0600),再 `docker restart overcast`;key 失效期间冷却表不迁移(内存态,重启清零);改 config 的热通道:file watcher 在盯配置变化,轻改可不重启,大改建议重启收口
 - **安全事件登记**:2026-10-12 网关 access key 明文曾入 lan-mac 本机会话 transcript(模板形状对比脚本脱敏遗漏,未入仓未入 commit);用户裁定 LAN 内低风险,不轮换,本条留档
 - **鉴权开关与 2026-10-13 事故**:用户裁定内网免鉴权并开关化(`deploy/auth-toggle.sh`,off=api-keys 零条目放行)。首版脚本 awk 还原时剥掉行缩进,config 形坏致容器 crash-loop 数分钟(本机客户端全体 Connection lost/ECONNREFUSED 即此),`config.yaml.bak-20261013-authoff` 备份恢复后修 bug;现行版实切前离线对拍全绿(off/on 往返字节一致、off 幂等、开态 on 无操作不变)

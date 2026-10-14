@@ -13,7 +13,7 @@
 | 模型 | 定位 | Claude Code(/v1/messages) | Codex(/v1/responses) | 通用 chat(/v1/chat/completions) |
 |---|---|---|---|---|
 | 智谱 glm-5.3 | 旗舰主力 | `zp-cc-glm53` | `zp-cx-glm53` | `zp-cx-chat` |
-| 智谱 glm-5.3-flash | 快速轻量 | `zp-cc-glm53fh` | 无,同档用 `ds-cx-flash` | 无,同档用 `ds-cx-flash` |
+| 智谱 glm-5.3-flash | 快速轻量 | `zp-cc-glm53fh` | `zp-cx-glm53fh` | 无,同档用 `ds-cx-flash` |
 | DeepSeek v4 pro | 深度推理 | `ds-cc-pro` | `ds-cx-pro` | `ds-cx-pro` |
 | DeepSeek flash | 快速廉价 | `ds-cc-flash` | `ds-cx-flash` | `ds-cx-flash` |
 
@@ -57,7 +57,7 @@ wire_api = "responses"
 experimental_bearer_token = "overcast"
 ```
 
-`~/.codex/models.json`(四条目全字段,**不可精简**,codex 反序列化缺字段即报错;DeepSeek 两条的 context_window 按 128K 保守申报,官方未核实,该值只影响 codex 侧显示与截断档,不影响网关转发):
+`~/.codex/models.json`(五条目全字段,**不可精简**,codex 反序列化缺字段即报错;DeepSeek 与智谱 flash 的 context_window 按 128K 保守申报,官方未核实,该值只影响 codex 侧显示与截断档,不影响网关转发):
 
 ```json
 {
@@ -107,6 +107,32 @@ experimental_bearer_token = "overcast"
       "truncation_policy": {"mode": "bytes", "limit": 10000},
       "context_window": 204800,
       "max_context_window": 204800,
+      "effective_context_window_percent": 95,
+      "supports_parallel_tool_calls": true,
+      "experimental_supported_tools": [],
+      "input_modalities": ["text"]
+    },
+    {
+      "slug": "zp-cx-glm53fh",
+      "display_name": "zp-cx-glm53fh",
+      "description": "Zhipu GLM-5.3-flash, fast lane",
+      "default_reasoning_level": "high",
+      "supported_reasoning_levels": [
+        {"effort": "low", "description": "Light reasoning"},
+        {"effort": "high", "description": "Enhanced reasoning"}
+      ],
+      "shell_type": "shell_command",
+      "visibility": "list",
+      "supported_in_api": true,
+      "priority": 4,
+      "base_instructions": "",
+      "supports_reasoning_summaries": true,
+      "default_reasoning_summary": "none",
+      "support_verbosity": false,
+      "apply_patch_tool_type": "freeform",
+      "truncation_policy": {"mode": "bytes", "limit": 10000},
+      "context_window": 131072,
+      "max_context_window": 131072,
       "effective_context_window_percent": 95,
       "supports_parallel_tool_calls": true,
       "experimental_supported_tools": [],
@@ -208,3 +234,4 @@ curl -s -o /dev/null -w '%{http_code}\n' http://10.10.10.9:8317/v1/responses \
 - `[1m]` 是智谱 CC 面 1M 上下文参数:日常会话不开(长尾延迟),长仓调查再开
 - 思考是延迟主体:DeepSeek flash 与智谱 glm5t 自行决定思考,适合短工具循环;pro/glm53 强制思考,首答偏慢属正常
 - 网关鉴权现为关闭态(内网裁定):任何可达本机的设备均可使用,请勿把地址外发到不可信网络
+- 响应头 `X-Request-Id` = 网关请求 id(UUIDv7):排障时拿它到网关侧 grep,精确到单发请求的完整记录

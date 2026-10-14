@@ -118,6 +118,8 @@ xai-api-key:
     models:
       - name: "glm-5.3"
         alias: "zp-cx-glm53"
+      - name: "glm-5.3-flash"
+        alias: "zp-cx-glm53fh"
       - name: "glm-5-turbo"
         alias: "zp-cx-glm5t"
   - api-key: "{{cpa_zhipu_key_2}}"
@@ -127,6 +129,8 @@ xai-api-key:
     models:
       - name: "glm-5.3"
         alias: "zp-cx-glm53"
+      - name: "glm-5.3-flash"
+        alias: "zp-cx-glm53fh"
       - name: "glm-5-turbo"
         alias: "zp-cx-glm5t"
   # zyuncs 备供应商条目(2026-10-12 grok 新增,同池轮换:智谱自费 key 额度尽时接力)
