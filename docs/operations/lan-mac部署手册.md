@@ -94,6 +94,33 @@ base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(
 ### 对话观测道,REQ-002 补丁态
 
 镜像 `cli-proxy-api:v8.0.23-dialog2`(本地构建自 `~/repos/CLIProxyAPI` 分支 `feat/dialog-observation`,commit `11e5a58a`;二开长期自维护,2026-10-12 用户裁定,不往上游提 PR;2026-10-14 dialog2 起 AI 路径响应头回写 `X-Request-Id`,与 stdout 末 8 位及 dialog JSONL 同一 UUIDv7,无值才补写不覆盖上游转发值,客户端凭此串联)。配置键 `dialog-log: true` 加 `dialog-log-max-total-size-mb: 512`,JSONL 落 `dialoglogs/` 卷(小时文件 `dialog-YYYYMMDD-HH.jsonl`,一行一事件,四类:client_request / sse / upstream_attempt / request_end;大请求体分块,单行不超 64KiB;完整 UUIDv7 的 request_id 可对 stdout 末 8 位)。2026-10-12 20:47 上线实测:10 请求全量落流,729KB 请求体分块重组回放合法,135 SSE 事件带 message_stop,延迟分布与补丁前同区间(7 至 34 秒),热路径零损;队列满丢事件有单测。
+
+**查数据(2026-10-14 实测定稿)**:id 从客户端响应头 `X-Request-Id` 拿;档按小时滚动,请求跨档拆两文件,查询一律 `dialog-*.jsonl` 全档通配;zsh 勿经 `echo "$VAR"` 转手(会展开反斜杠毁 JSON),用直 pipe。
+
+```bash
+# 按 id 取全事件,先看全景
+grep -h <id> ~/overcast/dialoglogs/dialog-*.jsonl | jq .
+
+# 重组原始请求体,64KiB 分块拼接回原文
+grep -h <id> ~/overcast/dialoglogs/dialog-*.jsonl \
+  | jq -sr 'map(select(.kind=="client_request"))|map(.payload)|join("")'
+
+# 助手回答全文,anthropic 面,-j 连排
+grep -h <id> ~/overcast/dialoglogs/dialog-*.jsonl \
+  | jq -r 'select(.kind=="sse")|.payload' | grep '^data: ' | sed 's/^data: //' \
+  | jq -j 'select(.type=="content_block_delta")|.delta.text // empty'
+
+# usage token,message_delta 含全量 input/output/cache_read/thinking
+grep -h <id> ~/overcast/dialoglogs/dialog-*.jsonl \
+  | jq -r 'select(.kind=="sse")|.payload' | grep '^data: ' | sed 's/^data: //' \
+  | jq -c 'select(.type=="message_delta").usage'
+
+# 慢请求榜,当前档 >15s
+grep '"kind":"request_end"' ~/overcast/dialoglogs/dialog-$(date +%Y%m%d-%H).jsonl \
+  | jq -r 'select(.duration_ms>15000)|[.ts,.request_id,.duration_ms]|@tsv'
+```
+
+错误原文也在 sse 事件里(智谱 HTTP 200 带错误 body 的已知边界,按 id 查即得原文与换 key 过程)。**留存硬界**:盘容预算 512MB 对 ~350MB/时 = 约 1.5 小时,超窗即删,历史查询待 vector+CH 落地(REQ-002 余项)。
 - **秘密轮换**:金库重渲染 config.yaml 落部署目录(0600),再 `docker restart overcast`;key 失效期间冷却表不迁移(内存态,重启清零);改 config 的热通道:file watcher 在盯配置变化,轻改可不重启,大改建议重启收口
 - **安全事件登记**:2026-10-12 网关 access key 明文曾入 lan-mac 本机会话 transcript(模板形状对比脚本脱敏遗漏,未入仓未入 commit);用户裁定 LAN 内低风险,不轮换,本条留档
 - **鉴权开关与 2026-10-13 事故**:用户裁定内网免鉴权并开关化(`deploy/auth-toggle.sh`,off=api-keys 零条目放行)。首版脚本 awk 还原时剥掉行缩进,config 形坏致容器 crash-loop 数分钟(本机客户端全体 Connection lost/ECONNREFUSED 即此),`config.yaml.bak-20261013-authoff` 备份恢复后修 bug;现行版实切前离线对拍全绿(off/on 往返字节一致、off 幂等、开态 on 无操作不变)
