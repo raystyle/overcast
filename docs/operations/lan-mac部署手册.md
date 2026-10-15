@@ -87,13 +87,13 @@ base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(
 ### 升级阶梯,问题出现时的处置序
 
 1. 换 key 不生效:先查冷却与配置(各组 `disable-cooling: false` 是否真渲染进去)
-2. 智谱错误形态在 body(如 HTTP 200 带业务失败、400 带限流文案):配 `request-scoped-errors` 按 body 子串改 `continue-and-cooldown`
+2. 智谱错误形态在 body:分两形。**HTTP 200 的 SSE 流内嵌 `event: error`**(2026-10-15 15:53 生产实事件:1308 限流装在 200 体内,原样透传不轮换不冷却):`request-scoped-errors` 盖不住(它只评估已成 error 对象的路径,200 体内嵌错误不产生 error 对象,旁路实测无效),由 dialog5 执行器「流开局 hold」兜住(扣住前导事件至首个内容块,hold 期内 error 帧映射 429 转流错误,字节未到客户端即轮转)。**400 带限流文案等带状态码形态**仍走 `request-scoped-errors` 按 body 子串改 `continue-and-cooldown`
 3. 配置盖不住:走二开条件句(分类函数小提交往上游提,见 [上游选型](../explanation/上游选型.md) 与 ADR-0001)
 4. 流式中断:客户端重开一轮,网关侧无动作(语义继承上游)
 
 ### 对话观测道,REQ-002 补丁态
 
-镜像 `cli-proxy-api:v8.0.23-dialog4`(本地构建自 `~/repos/CLIProxyAPI` 分支 `feat/dialog-observation`,commit `f71aebef`;二开长期自维护,2026-10-12 用户裁定,不往上游提 PR;2026-10-14 dialog2 起 AI 路径响应头回写 `X-Request-Id`,与 stdout 末 8 位及 dialog JSONL 同一 UUIDv7,无值才补写不覆盖上游转发值,客户端凭此串联;同日 dialog3 起 request_end 增补 agent/session_id/alias 与 usage 五列 input/output/cache_read/cache_creation/thinking,agent 从 User-Agent 映射 claude/codex/grok/kimi、session 支持 CC metadata.user_id 剥 uuid 与 codex 顶层 session_id、超 256KiB body 跳过留空,全 omitempty 不回填,对接 gw_logs.head vector transform;2026-10-15 dialog4 起 payload 单事件超 8MiB 截断打 `payload_truncated` 标、分块编出行超 64KiB 改二分不丢字节、文件开写失败丢行计入 dropped 计数、热重载任一 dialog 键变化即重建观测通道,四修均观测道内部不触请求路径)。配置键 `dialog-log: true` 加 `dialog-log-max-total-size-mb: 512`,JSONL 落 `dialoglogs/` 卷(小时文件 `dialog-YYYYMMDD-HH.jsonl`,一行一事件,四类:client_request / sse / upstream_attempt / request_end;大请求体分块,单行不超 64KiB,单事件超 8MiB 截断打 `payload_truncated`;完整 UUIDv7 的 request_id 可对 stdout 末 8 位)。2026-10-12 20:47 上线实测:10 请求全量落流,729KB 请求体分块重组回放合法,135 SSE 事件带 message_stop,延迟分布与补丁前同区间(7 至 34 秒),热路径零损;队列满丢事件有单测。
+镜像 `cli-proxy-api:v8.0.23-dialog5`(本地构建自 `~/repos/CLIProxyAPI` 分支 `feat/dialog-observation`,commit `1757fbf0`;二开长期自维护,2026-10-12 用户裁定,不往上游提 PR;2026-10-14 dialog2 起 AI 路径响应头回写 `X-Request-Id`,与 stdout 末 8 位及 dialog JSONL 同一 UUIDv7,无值才补写不覆盖上游转发值,客户端凭此串联;同日 dialog3 起 request_end 增补 agent/session_id/alias 与 usage 五列 input/output/cache_read/cache_creation/thinking,agent 从 User-Agent 映射 claude/codex/grok/kimi、session 支持 CC metadata.user_id 剥 uuid 与 codex 顶层 session_id、超 256KiB body 跳过留空,全 omitempty 不回填,对接 gw_logs.head vector transform;2026-10-15 dialog4 起 payload 单事件超 8MiB 截断打 `payload_truncated` 标、分块编出行超 64KiB 改二分不丢字节、文件开写失败丢行计入 dropped 计数、热重载任一 dialog 键变化即重建观测通道;同日 dialog5 起 claude 面透传执行器加流开局 hold,200 体内嵌 error 帧不再透传,映射 429 走 conductor 轮转)。配置键 `dialog-log: true` 加 `dialog-log-max-total-size-mb: 512`,JSONL 落 `dialoglogs/` 卷(小时文件 `dialog-YYYYMMDD-HH.jsonl`,一行一事件,四类:client_request / sse / upstream_attempt / request_end;大请求体分块,单行不超 64KiB,单事件超 8MiB 截断打 `payload_truncated`;完整 UUIDv7 的 request_id 可对 stdout 末 8 位)。2026-10-12 20:47 上线实测:10 请求全量落流,729KB 请求体分块重组回放合法,135 SSE 事件带 message_stop,延迟分布与补丁前同区间(7 至 34 秒),热路径零损;队列满丢事件有单测。
 
 **查数据(2026-10-14 实测定稿)**:id 从客户端响应头 `X-Request-Id` 拿;档按小时滚动,请求跨档拆两文件,查询一律 `dialog-*.jsonl` 全档通配;zsh 勿经 `echo "$VAR"` 转手(会展开反斜杠毁 JSON),用直 pipe。
 
