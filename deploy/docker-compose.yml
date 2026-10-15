@@ -3,11 +3,11 @@
 # 执行归部署批(单 ov-01 边界:工位只读探测,不代跑)
 # 现行镜像为二开自维护构建(对话观测道,REQ-002;2026-10-12 用户裁定不往上游提 PR):
 #   cd ~/repos/CLIProxyAPI && git checkout feat/dialog-observation \
-#   && docker build -t cli-proxy-api:v8.0.23-dialog5 \
-#      --build-arg VERSION=v8.0.23-dialog5 --build-arg COMMIT=1757fbf0 .
+#   && docker build -t cli-proxy-api:v8.0.23-dialog6 \
+#      --build-arg VERSION=v8.0.23-dialog6 --build-arg COMMIT=4c365fdd .
 services:
   cliproxy:
-    image: cli-proxy-api:v8.0.23-dialog5
+    image: cli-proxy-api:v8.0.23-dialog6
     container_name: overcast
     restart: unless-stopped
     ports:
