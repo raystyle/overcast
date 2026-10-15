@@ -120,7 +120,7 @@ grep '"kind":"request_end"' ~/overcast/dialoglogs/dialog-$(date +%Y%m%d-%H).json
   | jq -r 'select(.duration_ms>15000)|[.ts,.request_id,.duration_ms]|@tsv'
 ```
 
-错误原文也在 sse 事件里(智谱 HTTP 200 带错误 body 的已知边界,按 id 查即得原文与换 key 过程)。**留存硬界**:盘容预算 512MB 对 ~350MB/时 = 约 1.5 小时,超窗即删;超窗历史查询走 CH(lan-linux2 gw_logs:head 头表检索筛 id + gwlog 全量行含 body,TTL 30 天限时过渡,见 REQ-002 演进,SELECT 授权在 lan-linux dctl 侧)。
+错误原文也在 sse 事件里(智谱 HTTP 200 带错误 body 的已知边界,按 id 查即得原文与换 key 过程)。**留存硬界**:盘容预算 512MB 对 ~350MB/时 = 约 1.5 小时,超窗即删;超窗历史查询走 CH(lan-linux2 gw_logs:head 头表检索筛 id + gwlog 全量行含 body,TTL 180/365 天,见 REQ-002 演进,SELECT 授权在 lan-linux dctl 侧)。
 - **秘密轮换**:金库重渲染 config.yaml 落部署目录(0600),再 `docker restart overcast`;key 失效期间冷却表不迁移(内存态,重启清零);改 config 的热通道:file watcher 在盯配置变化,轻改可不重启,大改建议重启收口
 - **安全事件登记**:2026-10-12 网关 access key 明文曾入 lan-mac 本机会话 transcript(模板形状对比脚本脱敏遗漏,未入仓未入 commit);用户裁定 LAN 内低风险,不轮换,本条留档
 - **鉴权开关与 2026-10-13 事故**:用户裁定内网免鉴权并开关化(`deploy/auth-toggle.sh`,off=api-keys 零条目放行)。首版脚本 awk 还原时剥掉行缩进,config 形坏致容器 crash-loop 数分钟(本机客户端全体 Connection lost/ECONNREFUSED 即此),`config.yaml.bak-20261013-authoff` 备份恢复后修 bug;现行版实切前离线对拍全绿(off/on 往返字节一致、off 幂等、开态 on 无操作不变)
