@@ -78,6 +78,8 @@ key:现态鉴权关,任意非空串即可;开态用网关发的 access key(不�
 
 base-url 口径(2026-10-12 cfg-01 F1 修):统一写 `http://192.168.88.10:8317`(本网客户端实测路径)。主机名形 `http://lan-mac:8317` 经 ts 域解析到同机另一网口(10.10.10.9),docker 全接口监听,实测等效可用;前提是客户端具备该域解析,不具备则一律用 IP 形。
 
+**网关本机(MAC_MINI 自身)的客户端禁用 `localhost` 形**(2026-10-16 定位):`/etc/hosts` 含 `::1 localhost`,而宿主侧 lima 端口转发只听 IPv4,CC 的 fetch 偶发按 ::1 优先拨号即 ECONNREFUSED,客户端表现为每请求闪 `API error · Retrying in 0s` 横幅而请求实际全部成功(网关侧全 200 零痕迹;CC 侧 `API_TIMEOUT_MS` 已设大值,可排除流超时假象)。本机 CC 的 `ANTHROPIC_BASE_URL` 用 `http://127.0.0.1:8317` 钉死 IPv4。LAN 客户端显式 IP 形不受影响。另:colima 未开 `--network-address`,全体客户端(含 LAN/tailnet)经同一条 lima ssh-mux 转发链入容器,为单点,长停顿嫌疑在此,去转发化候维护窗口裁。
+
 逐客户端配置(Claude settings env 形、codex config.toml 加 models.json)见 [客户端接入](客户端接入.md)。
 
 ## 6. 运维
